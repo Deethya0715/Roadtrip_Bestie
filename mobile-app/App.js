@@ -23,6 +23,12 @@ export default function App() {
   const [isJoining, setIsJoining] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
 
+  // Global vibe state. Default is the clean white base; the passenger can
+  // flip into "manifesto" mode from their settings sheet to get the
+  // monochrome movie-poster backdrop and theme colors.
+  const [vibeMode, setVibeMode] = useState("standard"); // 'standard' | 'manifesto'
+  const [activeTheme, setActiveTheme] = useState(null);
+
   // On launch: if we have a local session, skip the role picker and go
   // straight to the homepage. Re-assert the seat on the backend so the
   // session row is in sync even if it was reset (or we're coming back
@@ -128,46 +134,74 @@ export default function App() {
 
   if (isRestoring) {
     return (
-      <View className="flex-1 bg-slate-900 items-center justify-center">
-        <ActivityIndicator size="large" color="#60a5fa" />
-        <Text className="text-slate-400 mt-4">Loading your trip...</Text>
+      <View className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#0f172a" />
+        <Text className="text-slate-500 mt-4">Loading your trip...</Text>
       </View>
     );
   }
 
   if (!isConfirmed) {
     return (
-      <View className="flex-1 bg-slate-900 justify-center px-8">
-        <Text className="text-white text-4xl font-bold mb-8 text-center">
+      <View className="flex-1 bg-white justify-center px-8">
+        <Text className="text-slate-900 text-4xl font-black mb-8 text-center">
           Command Center
         </Text>
 
-        <Text className="text-slate-400 text-center mb-4">
+        <Text className="text-slate-500 text-center mb-4">
           Select your role:
         </Text>
 
         <View className="flex-row justify-between mb-8">
           <TouchableOpacity
             onPress={() => handleRoleSelection("driver")}
-            className={`p-6 rounded-2xl w-[48%] ${
-              role === "driver" ? "bg-blue-500" : "bg-slate-800"
+            className={`p-6 rounded-2xl w-[48%] border ${
+              role === "driver"
+                ? "bg-blue-500 border-blue-500"
+                : "bg-slate-50 border-slate-200"
             }`}
           >
-            <Text className="text-white text-center font-bold">Driver</Text>
+            <Text
+              className={`text-center font-bold ${
+                role === "driver" ? "text-white" : "text-slate-900"
+              }`}
+            >
+              Driver
+            </Text>
             {session.driverName && (
-              <Text className="text-xs text-red-400 text-center">Taken</Text>
+              <Text
+                className={`text-xs text-center ${
+                  role === "driver" ? "text-red-100" : "text-red-500"
+                }`}
+              >
+                Taken
+              </Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => handleRoleSelection("passenger")}
-            className={`p-6 rounded-2xl w-[48%] ${
-              role === "passenger" ? "bg-purple-500" : "bg-slate-800"
+            className={`p-6 rounded-2xl w-[48%] border ${
+              role === "passenger"
+                ? "bg-purple-500 border-purple-500"
+                : "bg-slate-50 border-slate-200"
             }`}
           >
-            <Text className="text-white text-center font-bold">Passenger</Text>
+            <Text
+              className={`text-center font-bold ${
+                role === "passenger" ? "text-white" : "text-slate-900"
+              }`}
+            >
+              Passenger
+            </Text>
             {session.passengerName && (
-              <Text className="text-xs text-red-400 text-center">Taken</Text>
+              <Text
+                className={`text-xs text-center ${
+                  role === "passenger" ? "text-red-100" : "text-red-500"
+                }`}
+              >
+                Taken
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -179,7 +213,7 @@ export default function App() {
                 role === "driver" ? session.driverName : session.passengerName;
               if (!takenName) return null;
               return (
-                <Text className="text-amber-300 text-center mb-3">
+                <Text className="text-amber-600 text-center mb-3">
                   This seat is held by "{takenName}". Enter the same name to
                   rejoin.
                 </Text>
@@ -188,7 +222,7 @@ export default function App() {
             <TextInput
               placeholder="Enter your name"
               placeholderTextColor="#94a3b8"
-              className="bg-slate-800 text-white p-4 rounded-xl mb-4"
+              className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-4"
               onChangeText={setName}
               value={name}
             />
@@ -196,7 +230,7 @@ export default function App() {
               onPress={joinTrip}
               disabled={isJoining}
               className={`p-4 rounded-xl ${
-                isJoining ? "bg-green-900" : "bg-green-500"
+                isJoining ? "bg-slate-300" : "bg-slate-900"
               }`}
             >
               <Text className="text-white text-center font-bold text-lg">
@@ -210,8 +244,26 @@ export default function App() {
   }
 
   if (role === "driver") {
-    return <DriverHome name={name} session={session} onLeave={handleLeave} />;
+    return (
+      <DriverHome
+        name={name}
+        session={session}
+        onLeave={handleLeave}
+        vibeMode={vibeMode}
+        activeTheme={activeTheme}
+      />
+    );
   }
 
-  return <PassengerHome name={name} session={session} onLeave={handleLeave} />;
+  return (
+    <PassengerHome
+      name={name}
+      session={session}
+      onLeave={handleLeave}
+      vibeMode={vibeMode}
+      setVibeMode={setVibeMode}
+      activeTheme={activeTheme}
+      setActiveTheme={setActiveTheme}
+    />
+  );
 }

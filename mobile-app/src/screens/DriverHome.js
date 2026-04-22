@@ -1,82 +1,134 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 
-export default function DriverHome({ name, session, onLeave }) {
+export default function DriverHome({
+  name,
+  session,
+  onLeave,
+  vibeMode = "standard",
+  activeTheme,
+}) {
+  const isManifesto = vibeMode === "manifesto";
+  const accent = isManifesto && activeTheme ? activeTheme.accent : "#3b82f6";
+
+  const baseBg = isManifesto ? "bg-black" : "bg-white";
+  const titleColor = isManifesto ? "text-white" : "text-slate-900";
+  const mutedColor = isManifesto ? "text-slate-300" : "text-slate-500";
+  const cardBg = isManifesto
+    ? "bg-white/5 border border-white/10"
+    : "bg-slate-50 border border-slate-200";
+  const cardLabel = isManifesto ? "text-slate-400" : "text-slate-500";
+  const cardValue = isManifesto ? "text-white" : "text-slate-900";
+
   return (
-    <ScrollView className="flex-1 bg-slate-900">
-      <View className="px-6 pt-16 pb-8">
-        <Text className="text-blue-400 text-sm font-semibold uppercase tracking-widest">
-          Driver Dashboard
-        </Text>
-        <Text className="text-white text-4xl font-bold mt-2">
-          Hey, {name}
-        </Text>
-        <Text className="text-slate-400 mt-1">
-          You're behind the wheel. Drive safe.
-        </Text>
-      </View>
+    <View className={`flex-1 ${baseBg}`}>
+      {isManifesto && activeTheme?.poster && (
+        <Image
+          source={activeTheme.poster}
+          className="absolute inset-0 w-full h-full opacity-15"
+          style={{ tintColor: "gray" }}
+          resizeMode="cover"
+        />
+      )}
 
-      <View className="px-6">
-        <View className="bg-slate-800 rounded-2xl p-5 mb-4">
-          <Text className="text-slate-400 text-xs uppercase tracking-wider mb-1">
-            Co-pilot
+      <ScrollView className="flex-1">
+        <View className="px-6 pt-16 pb-8">
+          <Text
+            className="text-sm font-semibold uppercase tracking-widest"
+            style={{ color: accent }}
+          >
+            Driver Dashboard
           </Text>
-          <Text className="text-white text-xl font-semibold">
-            {session?.passengerName ?? "Waiting for passenger..."}
+          <Text className={`${titleColor} text-4xl font-black mt-2`}>
+            Hey, {name}
+          </Text>
+          <Text className={`${mutedColor} mt-1`}>
+            You're behind the wheel. Drive safe.
           </Text>
         </View>
 
-        <View className="flex-row justify-between mb-4">
-          <View className="bg-slate-800 rounded-2xl p-5 w-[48%]">
-            <Text className="text-slate-400 text-xs uppercase tracking-wider mb-1">
-              Status
+        <View className="px-6">
+          <View className={`${cardBg} rounded-2xl p-5 mb-4`}>
+            <Text
+              className={`${cardLabel} text-xs uppercase tracking-wider mb-1`}
+            >
+              Co-pilot
             </Text>
-            <Text className="text-green-400 text-lg font-semibold">
-              On the road
+            <Text className={`${cardValue} text-xl font-semibold`}>
+              {session?.passengerName ?? "Waiting for passenger..."}
             </Text>
           </View>
-          <View className="bg-slate-800 rounded-2xl p-5 w-[48%]">
-            <Text className="text-slate-400 text-xs uppercase tracking-wider mb-1">
-              Role
-            </Text>
-            <Text className="text-white text-lg font-semibold">Driver</Text>
+
+          <View className="flex-row justify-between mb-4">
+            <View className={`${cardBg} rounded-2xl p-5 w-[48%]`}>
+              <Text
+                className={`${cardLabel} text-xs uppercase tracking-wider mb-1`}
+              >
+                Status
+              </Text>
+              <Text
+                className="text-lg font-semibold"
+                style={{ color: isManifesto ? accent : "#16a34a" }}
+              >
+                On the road
+              </Text>
+            </View>
+            <View className={`${cardBg} rounded-2xl p-5 w-[48%]`}>
+              <Text
+                className={`${cardLabel} text-xs uppercase tracking-wider mb-1`}
+              >
+                Role
+              </Text>
+              <Text className={`${cardValue} text-lg font-semibold`}>
+                Driver
+              </Text>
+            </View>
           </View>
+
+          <Text className={`${titleColor} text-lg font-bold mt-4 mb-3`}>
+            Quick Actions
+          </Text>
+
+          <TouchableOpacity
+            className="rounded-2xl p-5 mb-3"
+            style={{ backgroundColor: isManifesto ? accent : "#3b82f6" }}
+          >
+            <Text className="text-white font-bold text-base">
+              Start Navigation
+            </Text>
+            <Text className="text-white/80 text-xs mt-1">
+              Open maps with your route
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className={`${cardBg} rounded-2xl p-5 mb-3`}>
+            <Text className={`${cardValue} font-bold text-base`}>
+              Play Music
+            </Text>
+            <Text className={`${cardLabel} text-xs mt-1`}>
+              Road trip playlist
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className={`${cardBg} rounded-2xl p-5 mb-3`}>
+            <Text className={`${cardValue} font-bold text-base`}>
+              Voice Commands
+            </Text>
+            <Text className={`${cardLabel} text-xs mt-1`}>
+              Hands-free controls
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onLeave}
+            className="border border-red-500 rounded-2xl p-4 mt-6 mb-12"
+          >
+            <Text className="text-red-500 text-center font-semibold">
+              End Trip
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        <Text className="text-white text-lg font-bold mt-4 mb-3">
-          Quick Actions
-        </Text>
-
-        <TouchableOpacity className="bg-blue-500 rounded-2xl p-5 mb-3">
-          <Text className="text-white font-bold text-base">Start Navigation</Text>
-          <Text className="text-blue-100 text-xs mt-1">
-            Open maps with your route
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="bg-slate-800 rounded-2xl p-5 mb-3">
-          <Text className="text-white font-bold text-base">Play Music</Text>
-          <Text className="text-slate-400 text-xs mt-1">
-            Road trip playlist
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="bg-slate-800 rounded-2xl p-5 mb-3">
-          <Text className="text-white font-bold text-base">Voice Commands</Text>
-          <Text className="text-slate-400 text-xs mt-1">
-            Hands-free controls
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={onLeave}
-          className="border border-red-500 rounded-2xl p-4 mt-6 mb-12"
-        >
-          <Text className="text-red-400 text-center font-semibold">
-            End Trip
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
