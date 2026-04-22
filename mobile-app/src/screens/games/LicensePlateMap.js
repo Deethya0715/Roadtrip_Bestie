@@ -177,34 +177,7 @@ export default function LicensePlateMap({ accent = "#a855f7" }) {
         </View>
       )}
 
-      <View className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-12">
-        <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
-          Checklist
-        </Text>
-        <View className="flex-row flex-wrap">
-          {STATE_TILES.map((s) => {
-            const on = !!spotted[s.code];
-            return (
-              <TouchableOpacity
-                key={"list-" + s.code}
-                onPress={() => toggle(s)}
-                className="mr-2 mb-2 rounded-xl px-3 py-1.5 border"
-                style={{
-                  backgroundColor: on ? accent : "#ffffff",
-                  borderColor: on ? accent : "#e2e8f0",
-                }}
-              >
-                <Text
-                  className="font-bold text-xs"
-                  style={{ color: on ? "#ffffff" : "#0f172a" }}
-                >
-                  {s.code}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      <View className="mb-12" />
     </ScrollView>
   );
 }
