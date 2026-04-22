@@ -10,6 +10,8 @@ import Ghost from "./games/Ghost";
 import IntricateLie from "./games/IntricateLie";
 import VirtualHideAndSeek from "./games/VirtualHideAndSeek";
 import LicensePlateMap from "./games/LicensePlateMap";
+import { getThemeSurfaces } from "../themes/manifestoThemes";
+import ThemedBackdrop from "../themes/ThemedBackdrop";
 
 const WOULD_YOU_RATHER = [
   "Would you rather pull over for the best diner of your life, or push through to arrive 3 hours early?",
@@ -149,8 +151,15 @@ const GAME_SECTIONS = [
   },
 ];
 
-export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
+export default function GamesScreen({
+  visible,
+  onClose,
+  accent = "#a855f7",
+  theme = null,
+}) {
   const [activeGame, setActiveGame] = useState(null);
+  const surfaces = getThemeSurfaces(theme);
+  const effectiveAccent = surfaces.isThemed ? surfaces.accent : accent;
 
   const sections = useMemo(() => GAME_SECTIONS, []);
 
@@ -161,13 +170,19 @@ export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
       onRequestClose={onClose}
       presentationStyle="pageSheet"
     >
-      <View className="flex-1 bg-white">
-        <View className="px-6 pt-12 pb-4 flex-row items-center justify-between border-b border-slate-100">
+      <View className={`flex-1 ${surfaces.rootBg}`}>
+        <ThemedBackdrop surfaces={surfaces} />
+
+        <View
+          className={`px-6 pt-12 pb-4 flex-row items-center justify-between ${surfaces.headerBorder}`}
+        >
           <View>
-            <Text className="text-xs uppercase tracking-widest text-slate-500">
+            <Text
+              className={`text-xs uppercase tracking-widest ${surfaces.subtleText}`}
+            >
               Entertainment
             </Text>
-            <Text className="text-2xl font-black text-slate-900 mt-1">
+            <Text className={`text-2xl font-black mt-1 ${surfaces.titleText}`}>
               Road Games
             </Text>
           </View>
@@ -176,9 +191,9 @@ export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
               setActiveGame(null);
               onClose();
             }}
-            className="px-4 py-2 rounded-full bg-slate-100"
+            className={`px-4 py-2 rounded-full ${surfaces.pillBg}`}
           >
-            <Text className="text-slate-700 font-semibold">Close</Text>
+            <Text className={`font-semibold ${surfaces.pillText}`}>Close</Text>
           </TouchableOpacity>
         </View>
 
@@ -186,11 +201,13 @@ export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
           <ScrollView className="flex-1 px-6 pt-5">
             {sections.map((section) => (
               <View key={section.title} className="mb-2">
-                <Text className="text-xs uppercase tracking-widest text-slate-500 mt-3">
+                <Text
+                  className={`text-xs uppercase tracking-widest mt-3 ${surfaces.subtleText}`}
+                >
                   {section.title}
                 </Text>
                 {section.subtitle && (
-                  <Text className="text-slate-400 text-xs mb-3">
+                  <Text className={`text-xs mb-3 ${surfaces.mutedText}`}>
                     {section.subtitle}
                   </Text>
                 )}
@@ -198,12 +215,14 @@ export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
                   <TouchableOpacity
                     key={g.id}
                     onPress={() => setActiveGame(g.id)}
-                    className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-3"
+                    className={`rounded-2xl p-5 mb-3 ${surfaces.cardBg}`}
                   >
-                    <Text className="text-slate-900 font-bold text-lg">
+                    <Text
+                      className={`font-bold text-lg ${surfaces.titleText}`}
+                    >
                       {g.title}
                     </Text>
-                    <Text className="text-slate-500 text-sm mt-1">
+                    <Text className={`text-sm mt-1 ${surfaces.mutedText}`}>
                       {g.blurb}
                     </Text>
                   </TouchableOpacity>
@@ -215,7 +234,8 @@ export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
         ) : (
           <GameRunner
             gameId={activeGame}
-            accent={accent}
+            accent={effectiveAccent}
+            surfaces={surfaces}
             onBack={() => setActiveGame(null)}
           />
         )}
@@ -224,38 +244,44 @@ export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
   );
 }
 
-function GameRunner({ gameId, accent, onBack }) {
+function GameRunner({ gameId, accent, surfaces, onBack }) {
   return (
     <View className="flex-1">
       <View className="px-6 pt-4 pb-2">
         <TouchableOpacity onPress={onBack}>
-          <Text className="text-slate-500">← All games</Text>
+          <Text className={surfaces.mutedText}>← All games</Text>
         </TouchableOpacity>
       </View>
 
       <View className="flex-1 px-6">
-        {gameId === "wyr" && <WouldYouRather accent={accent} />}
-        {gameId === "trivia" && <Trivia accent={accent} />}
-        {gameId === "ispy" && <ISpy accent={accent} />}
-        {gameId === "td" && <TruthOrDare accent={accent} />}
-        {gameId === "ghost" && <Ghost accent={accent} />}
-        {gameId === "lie" && <IntricateLie accent={accent} />}
-        {gameId === "hideseek" && <VirtualHideAndSeek accent={accent} />}
-        {gameId === "plate" && <LicensePlateMap accent={accent} />}
+        {gameId === "wyr" && <WouldYouRather accent={accent} surfaces={surfaces} />}
+        {gameId === "trivia" && <Trivia accent={accent} surfaces={surfaces} />}
+        {gameId === "ispy" && <ISpy accent={accent} surfaces={surfaces} />}
+        {gameId === "td" && <TruthOrDare accent={accent} surfaces={surfaces} />}
+        {gameId === "ghost" && <Ghost accent={accent} surfaces={surfaces} />}
+        {gameId === "lie" && <IntricateLie accent={accent} surfaces={surfaces} />}
+        {gameId === "hideseek" && (
+          <VirtualHideAndSeek accent={accent} surfaces={surfaces} />
+        )}
+        {gameId === "plate" && <LicensePlateMap accent={accent} surfaces={surfaces} />}
       </View>
     </View>
   );
 }
 
-function WouldYouRather({ accent }) {
+function WouldYouRather({ accent, surfaces }) {
   const [prompt, setPrompt] = useState(WOULD_YOU_RATHER[0]);
   return (
     <View className="flex-1 pt-6">
-      <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+      <Text
+        className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+      >
         Would You Rather
       </Text>
-      <View className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-        <Text className="text-slate-900 text-xl font-semibold leading-7">
+      <View className={`rounded-2xl p-6 ${surfaces.cardBg}`}>
+        <Text
+          className={`text-xl font-semibold leading-7 ${surfaces.titleText}`}
+        >
           {prompt}
         </Text>
       </View>
@@ -272,7 +298,7 @@ function WouldYouRather({ accent }) {
   );
 }
 
-function Trivia({ accent }) {
+function Trivia({ accent, surfaces }) {
   const [idx, setIdx] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const q = TRIVIA[idx];
@@ -284,11 +310,15 @@ function Trivia({ accent }) {
 
   return (
     <View className="flex-1 pt-6">
-      <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+      <Text
+        className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+      >
         Question {idx + 1} / {TRIVIA.length}
       </Text>
-      <View className="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-4">
-        <Text className="text-slate-900 text-xl font-semibold leading-7">
+      <View className={`rounded-2xl p-6 mb-4 ${surfaces.cardBg}`}>
+        <Text
+          className={`text-xl font-semibold leading-7 ${surfaces.titleText}`}
+        >
           {q.q}
         </Text>
       </View>
@@ -300,12 +330,16 @@ function Trivia({ accent }) {
           <Text className="text-xs uppercase tracking-widest mb-1" style={{ color: accent }}>
             Answer
           </Text>
-          <Text className="text-slate-900 text-base font-medium">{q.a}</Text>
+          <Text className={`text-base font-medium ${surfaces.titleText}`}>
+            {q.a}
+          </Text>
         </View>
       ) : (
         <TouchableOpacity
           onPress={() => setShowAnswer(true)}
-          className="bg-slate-900 rounded-2xl p-5 mb-4"
+          className={`rounded-2xl p-5 mb-4 ${
+            surfaces.isDark ? "bg-white/15" : "bg-slate-900"
+          }`}
         >
           <Text className="text-white text-center font-bold">Reveal answer</Text>
         </TouchableOpacity>
@@ -321,19 +355,21 @@ function Trivia({ accent }) {
   );
 }
 
-function ISpy({ accent }) {
+function ISpy({ accent, surfaces }) {
   const [prompt, setPrompt] = useState(ISPY_PROMPTS[0]);
   return (
     <View className="flex-1 pt-6">
-      <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+      <Text
+        className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+      >
         I Spy with my little eye...
       </Text>
-      <View className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-        <Text className="text-slate-900 text-2xl font-bold leading-8">
+      <View className={`rounded-2xl p-6 ${surfaces.cardBg}`}>
+        <Text className={`text-2xl font-bold leading-8 ${surfaces.titleText}`}>
           {prompt}
         </Text>
       </View>
-      <Text className="text-slate-500 text-sm mt-3">
+      <Text className={`text-sm mt-3 ${surfaces.mutedText}`}>
         First one to spot it calls "Spy!"
       </Text>
       <TouchableOpacity
@@ -347,15 +383,17 @@ function ISpy({ accent }) {
   );
 }
 
-function TruthOrDare({ accent }) {
+function TruthOrDare({ accent, surfaces }) {
   const [card, setCard] = useState(TRUTH_OR_DARE[0]);
   return (
     <View className="flex-1 pt-6">
       <Text className="text-xs uppercase tracking-widest mb-2" style={{ color: accent }}>
         {card.type}
       </Text>
-      <View className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-        <Text className="text-slate-900 text-xl font-semibold leading-7">
+      <View className={`rounded-2xl p-6 ${surfaces.cardBg}`}>
+        <Text
+          className={`text-xl font-semibold leading-7 ${surfaces.titleText}`}
+        >
           {card.text}
         </Text>
       </View>

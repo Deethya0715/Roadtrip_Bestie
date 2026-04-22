@@ -10,12 +10,14 @@ import RoadtripPlannerScreen from "./RoadtripPlannerScreen";
  *   2. Amenities
  *   3. Roadtrip Planner
  *
- * Each card opens a full-screen modal experience. Styling adapts to the
- * manifesto theme via `isDarkBase` / `accent`.
+ * Each card opens a full-screen modal experience. The active Manifesto
+ * `theme` is forwarded so every downstream screen (and the games inside
+ * Games) can render its own poster wash, accent, and dark/light base.
  */
 export default function HomeFeatureCards({
   accent = "#3b82f6",
   isDarkBase = false,
+  theme = null,
 }) {
   const [open, setOpen] = useState(null); // 'games' | 'amenities' | 'planner' | null
 
@@ -85,16 +87,19 @@ export default function HomeFeatureCards({
         visible={open === "games"}
         onClose={() => setOpen(null)}
         accent={accent}
+        theme={theme}
       />
       <AmenitiesScreen
         visible={open === "amenities"}
         onClose={() => setOpen(null)}
         accent={accent}
+        theme={theme}
       />
       <RoadtripPlannerScreen
         visible={open === "planner"}
         onClose={() => setOpen(null)}
         accent={accent}
+        theme={theme}
       />
     </View>
   );

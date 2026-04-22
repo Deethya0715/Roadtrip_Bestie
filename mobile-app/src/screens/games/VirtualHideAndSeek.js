@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, TouchableOpacity, ScrollView, TextInput } from "react-native";
+import { getThemeSurfaces } from "../../themes/manifestoThemes";
 
 const ROOMS = [
   "Inside the glovebox",
@@ -45,7 +46,11 @@ function pickRoom(exclude) {
  * yes/no questions to narrow it down. The phone hides and later reveals
  * the spot while tracking question count and who's hiding next.
  */
-export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
+export default function VirtualHideAndSeek({
+  accent = "#a855f7",
+  surfaces: injected,
+}) {
+  const surfaces = injected ?? getThemeSurfaces(null);
   const [hiderName, setHiderName] = useState("Driver");
   const [seekerName, setSeekerName] = useState("Passenger");
   const [editing, setEditing] = useState(true);
@@ -111,36 +116,44 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
   if (editing) {
     return (
       <ScrollView className="flex-1 pt-6">
-        <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+        <Text
+          className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+        >
           Virtual Hide & Seek
         </Text>
-        <Text className="text-slate-900 text-xl font-semibold leading-7 mb-4">
+        <Text
+          className={`text-xl font-semibold leading-7 mb-4 ${surfaces.titleText}`}
+        >
           Who's hiding first?
         </Text>
-        <Text className="text-slate-500 text-sm mb-4 leading-5">
+        <Text className={`text-sm mb-4 leading-5 ${surfaces.mutedText}`}>
           The hider picks a secret spot on the phone and keeps it hidden. The
           seeker asks yes/no questions out loud. Tap "Found me" when they
           guess it.
         </Text>
-        <Text className="text-slate-500 text-xs uppercase tracking-wider mb-1">
+        <Text
+          className={`text-xs uppercase tracking-wider mb-1 ${surfaces.subtleText}`}
+        >
           Hider
         </Text>
         <TextInput
           value={hiderName}
           onChangeText={setHiderName}
           placeholder="Driver"
-          placeholderTextColor="#94a3b8"
-          className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-4"
+          placeholderTextColor={surfaces.placeholderColor}
+          className={`p-4 rounded-xl mb-4 ${surfaces.inputBg}`}
         />
-        <Text className="text-slate-500 text-xs uppercase tracking-wider mb-1">
+        <Text
+          className={`text-xs uppercase tracking-wider mb-1 ${surfaces.subtleText}`}
+        >
           Seeker
         </Text>
         <TextInput
           value={seekerName}
           onChangeText={setSeekerName}
           placeholder="Passenger"
-          placeholderTextColor="#94a3b8"
-          className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-6"
+          placeholderTextColor={surfaces.placeholderColor}
+          className={`p-4 rounded-xl mb-6 ${surfaces.inputBg}`}
         />
         <TouchableOpacity
           onPress={() => {
@@ -160,22 +173,32 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
     );
   }
 
+  const darkBtn = surfaces.isDark ? "bg-white/15" : "bg-slate-900";
+
   return (
     <ScrollView className="flex-1 pt-4">
       <View className="flex-row mb-4">
-        <View className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-4 mr-2">
-          <Text className="text-slate-500 text-xs uppercase tracking-wider">
+        <View className={`flex-1 rounded-2xl p-4 mr-2 ${surfaces.cardBg}`}>
+          <Text
+            className={`text-xs uppercase tracking-wider ${surfaces.subtleText}`}
+          >
             Hiding
           </Text>
-          <Text className="text-slate-900 font-bold text-base mt-1">
+          <Text
+            className={`font-bold text-base mt-1 ${surfaces.titleText}`}
+          >
             {hiderName}
           </Text>
         </View>
-        <View className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-4">
-          <Text className="text-slate-500 text-xs uppercase tracking-wider">
+        <View className={`flex-1 rounded-2xl p-4 ${surfaces.cardBg}`}>
+          <Text
+            className={`text-xs uppercase tracking-wider ${surfaces.subtleText}`}
+          >
             Seeking
           </Text>
-          <Text className="text-slate-900 font-bold text-base mt-1">
+          <Text
+            className={`font-bold text-base mt-1 ${surfaces.titleText}`}
+          >
             {seekerName}
           </Text>
         </View>
@@ -183,7 +206,7 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
 
       {phase === "setup" && (
         <View>
-          <Text className="text-slate-500 text-sm mb-3">
+          <Text className={`text-sm mb-3 ${surfaces.mutedText}`}>
             {hiderName}, pick a hiding spot only you can see.
           </Text>
           <TouchableOpacity
@@ -195,20 +218,22 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
               Surprise me with a room
             </Text>
           </TouchableOpacity>
-          <Text className="text-slate-500 text-xs uppercase tracking-wider mt-2 mb-1">
+          <Text
+            className={`text-xs uppercase tracking-wider mt-2 mb-1 ${surfaces.subtleText}`}
+          >
             Or hide somewhere custom
           </Text>
           <TextInput
             value={customRoom}
             onChangeText={setCustomRoom}
             placeholder="Inside the cassette deck…"
-            placeholderTextColor="#94a3b8"
-            className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-3"
+            placeholderTextColor={surfaces.placeholderColor}
+            className={`p-4 rounded-xl mb-3 ${surfaces.inputBg}`}
           />
           <TouchableOpacity
             onPress={useCustom}
             disabled={!customRoom.trim()}
-            className="rounded-2xl p-4 bg-slate-900"
+            className={`rounded-2xl p-4 ${darkBtn}`}
             style={{ opacity: customRoom.trim() ? 1 : 0.4 }}
           >
             <Text className="text-white text-center font-bold">
@@ -220,17 +245,23 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
 
       {phase === "hiding" && (
         <View>
-          <View className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-4 items-center">
-            <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+          <View
+            className={`rounded-2xl p-5 mb-4 items-center ${surfaces.cardBg}`}
+          >
+            <Text
+              className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+            >
               {hiderName}'s secret spot
             </Text>
             {concealed ? (
-              <Text className="text-slate-500 italic text-center my-4">
+              <Text
+                className={`italic text-center my-4 ${surfaces.mutedText}`}
+              >
                 Hidden. Tap below to peek while the seeker looks away.
               </Text>
             ) : (
               <Text
-                className="text-slate-900 text-xl font-black text-center my-2"
+                className="text-xl font-black text-center my-2"
                 style={{ color: accent }}
               >
                 {room}
@@ -240,14 +271,21 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
               <TouchableOpacity
                 onPressIn={() => setConcealed(false)}
                 onPressOut={() => setConcealed(true)}
-                className="rounded-xl px-5 py-3 bg-slate-900 mr-2"
+                className={`rounded-xl px-5 py-3 mr-2 ${darkBtn}`}
               >
                 <Text className="text-white font-bold">
                   {concealed ? "Hold to peek" : "Let go to hide"}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={pick} className="rounded-xl px-5 py-3 bg-slate-100">
-                <Text className="text-slate-700 font-bold">Re-roll</Text>
+              <TouchableOpacity
+                onPress={pick}
+                className={`rounded-xl px-5 py-3 ${surfaces.secondaryBtnBg}`}
+              >
+                <Text
+                  className={`font-bold ${surfaces.secondaryBtnText}`}
+                >
+                  Re-roll
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -265,8 +303,12 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
 
       {phase === "seeking" && (
         <View>
-          <View className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-4 items-center">
-            <Text className="text-xs uppercase tracking-widest text-slate-500">
+          <View
+            className={`rounded-2xl p-5 mb-4 items-center ${surfaces.cardBg}`}
+          >
+            <Text
+              className={`text-xs uppercase tracking-widest ${surfaces.subtleText}`}
+            >
               Questions asked
             </Text>
             <Text
@@ -285,24 +327,32 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setQuestionCount((c) => Math.max(0, c - 1))}
-                className="rounded-xl px-5 py-3 bg-slate-100"
+                className={`rounded-xl px-5 py-3 ${surfaces.secondaryBtnBg}`}
               >
-                <Text className="text-slate-700 font-bold">-</Text>
+                <Text className={`font-bold ${surfaces.secondaryBtnText}`}>
+                  -
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          <View className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-4 items-center">
-            <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+          <View
+            className={`rounded-2xl p-5 mb-4 items-center ${surfaces.cardBg}`}
+          >
+            <Text
+              className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+            >
               Secret spot
             </Text>
             {concealed ? (
-              <Text className="text-slate-500 italic text-center my-3">
+              <Text
+                className={`italic text-center my-3 ${surfaces.mutedText}`}
+              >
                 Still hidden
               </Text>
             ) : (
               <Text
-                className="text-slate-900 text-xl font-black text-center my-2"
+                className="text-xl font-black text-center my-2"
                 style={{ color: accent }}
               >
                 {room}
@@ -311,7 +361,7 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
             <TouchableOpacity
               onPressIn={() => setConcealed(false)}
               onPressOut={() => setConcealed(true)}
-              className="rounded-xl px-5 py-3 bg-slate-900"
+              className={`rounded-xl px-5 py-3 ${darkBtn}`}
             >
               <Text className="text-white font-bold">
                 {concealed ? "Hold to peek" : "Release"}
@@ -333,14 +383,19 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
 
       {phase === "found" && (
         <View>
-          <View className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-4">
-            <Text className="text-xs uppercase tracking-widest mb-1" style={{ color: accent }}>
+          <View className={`rounded-2xl p-5 mb-4 ${surfaces.cardBg}`}>
+            <Text
+              className="text-xs uppercase tracking-widest mb-1"
+              style={{ color: accent }}
+            >
               Found in {questionCount} question{questionCount === 1 ? "" : "s"}
             </Text>
-            <Text className="text-slate-900 text-2xl font-black mb-1">
+            <Text
+              className={`text-2xl font-black mb-1 ${surfaces.titleText}`}
+            >
               {seekerName} cracked it
             </Text>
-            <Text className="text-slate-500">
+            <Text className={surfaces.mutedText}>
               {hiderName} was hiding at: {room}
             </Text>
           </View>
@@ -356,9 +411,11 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={playSameAgain}
-            className="rounded-2xl p-4 bg-slate-100"
+            className={`rounded-2xl p-4 ${surfaces.secondaryBtnBg}`}
           >
-            <Text className="text-slate-900 text-center font-bold">
+            <Text
+              className={`text-center font-bold ${surfaces.secondaryBtnText}`}
+            >
               Same hider, new spot
             </Text>
           </TouchableOpacity>
@@ -367,19 +424,22 @@ export default function VirtualHideAndSeek({ accent = "#a855f7" }) {
 
       {history.length > 0 && (
         <View className="mt-8 mb-12">
-          <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+          <Text
+            className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+          >
             Round log
           </Text>
           {history.map((h) => (
             <View
               key={h.id}
-              className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-2"
+              className={`rounded-xl p-3 mb-2 ${surfaces.cardBg}`}
             >
-              <Text className="text-slate-900 font-bold">
+              <Text className={`font-bold ${surfaces.titleText}`}>
                 {h.seeker} found {h.hider}
               </Text>
-              <Text className="text-slate-500 text-xs mt-0.5">
-                {h.room} · {h.questionCount} question{h.questionCount === 1 ? "" : "s"}
+              <Text className={`text-xs mt-0.5 ${surfaces.mutedText}`}>
+                {h.room} · {h.questionCount} question
+                {h.questionCount === 1 ? "" : "s"}
               </Text>
             </View>
           ))}

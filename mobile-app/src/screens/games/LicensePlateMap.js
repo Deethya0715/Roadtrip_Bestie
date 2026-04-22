@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import Svg, { Rect, G, Text as SvgText } from "react-native-svg";
+import { getThemeSurfaces } from "../../themes/manifestoThemes";
 
 // Tile-grid layout of U.S. states. Each entry is [col, row] in a 12x8 grid
 // that approximates the country's shape. Tapping a tile logs a sighting.
@@ -70,7 +71,11 @@ const VB_H = GRID_ROWS * (TILE + GAP) + PAD * 2;
  * a tappable tile laid out roughly in its geographic position. Tap to log
  * a sighting; tap again to clear.
  */
-export default function LicensePlateMap({ accent = "#a855f7" }) {
+export default function LicensePlateMap({
+  accent = "#a855f7",
+  surfaces: injected,
+}) {
+  const surfaces = injected ?? getThemeSurfaces(null);
   const [spotted, setSpotted] = useState({});
   const [recent, setRecent] = useState(null);
 
@@ -96,27 +101,30 @@ export default function LicensePlateMap({ accent = "#a855f7" }) {
     <ScrollView className="flex-1 pt-2" showsVerticalScrollIndicator={false}>
       <View className="flex-row items-end justify-between mb-3">
         <View>
-          <Text className="text-xs uppercase tracking-widest text-slate-500">
+          <Text
+            className={`text-xs uppercase tracking-widest ${surfaces.subtleText}`}
+          >
             License Plate Game
           </Text>
-          <Text className="text-slate-900 text-3xl font-black mt-1">
-            {count} <Text className="text-slate-400">/ 50</Text>
+          <Text className={`text-3xl font-black mt-1 ${surfaces.titleText}`}>
+            {count}{" "}
+            <Text className={surfaces.mutedText}>/ 50</Text>
           </Text>
-          <Text className="text-slate-500 text-xs mt-1">
+          <Text className={`text-xs mt-1 ${surfaces.mutedText}`}>
             Tap a state the moment you spot its plate.
           </Text>
         </View>
         <TouchableOpacity
           onPress={reset}
-          className="px-3 py-2 rounded-full bg-slate-100"
+          className={`px-3 py-2 rounded-full ${surfaces.pillBg}`}
         >
-          <Text className="text-slate-600 text-xs font-semibold">Reset</Text>
+          <Text className={`text-xs font-semibold ${surfaces.pillText}`}>
+            Reset
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <View
-        className="bg-slate-50 border border-slate-200 rounded-2xl p-3 mb-3"
-      >
+      <View className={`rounded-2xl p-3 mb-3 ${surfaces.cardBg}`}>
         <Svg
           viewBox={`0 0 ${VB_W} ${VB_H}`}
           width="100%"
@@ -127,6 +135,13 @@ export default function LicensePlateMap({ accent = "#a855f7" }) {
             const on = !!spotted[s.code];
             const x = PAD + s.col * (TILE + GAP);
             const y = PAD + s.row * (TILE + GAP);
+            const idleFill = surfaces.isDark
+              ? "rgba(255,255,255,0.08)"
+              : "#ffffff";
+            const idleStroke = surfaces.isDark
+              ? "rgba(255,255,255,0.2)"
+              : "#e2e8f0";
+            const idleText = surfaces.isDark ? "#e2e8f0" : "#0f172a";
             return (
               <G key={s.code} onPress={() => toggle(s)}>
                 <Rect
@@ -136,8 +151,8 @@ export default function LicensePlateMap({ accent = "#a855f7" }) {
                   height={TILE}
                   rx={6}
                   ry={6}
-                  fill={on ? accent : "#ffffff"}
-                  stroke={on ? accent : "#e2e8f0"}
+                  fill={on ? accent : idleFill}
+                  stroke={on ? accent : idleStroke}
                   strokeWidth={1.25}
                 />
                 <SvgText
@@ -145,7 +160,7 @@ export default function LicensePlateMap({ accent = "#a855f7" }) {
                   y={y + TILE / 2 + 4.5}
                   fontSize={13}
                   fontWeight="700"
-                  fill={on ? "#ffffff" : "#0f172a"}
+                  fill={on ? "#ffffff" : idleText}
                   textAnchor="middle"
                 >
                   {s.code}
@@ -160,18 +175,32 @@ export default function LicensePlateMap({ accent = "#a855f7" }) {
         <View
           className="rounded-2xl p-4 mb-3"
           style={{
-            backgroundColor: recent.on ? accent + "22" : "#f1f5f9",
+            backgroundColor: recent.on
+              ? accent + "22"
+              : surfaces.isDark
+              ? "rgba(255,255,255,0.06)"
+              : "#f1f5f9",
             borderWidth: 1,
-            borderColor: recent.on ? accent : "#e2e8f0",
+            borderColor: recent.on
+              ? accent
+              : surfaces.isDark
+              ? "rgba(255,255,255,0.15)"
+              : "#e2e8f0",
           }}
         >
           <Text
             className="text-xs uppercase tracking-widest"
-            style={{ color: recent.on ? accent : "#64748b" }}
+            style={{
+              color: recent.on
+                ? accent
+                : surfaces.isDark
+                ? "#cbd5e1"
+                : "#64748b",
+            }}
           >
             {recent.on ? "Logged" : "Removed"}
           </Text>
-          <Text className="text-slate-900 font-bold text-base mt-1">
+          <Text className={`font-bold text-base mt-1 ${surfaces.titleText}`}>
             {recent.name} ({recent.code})
           </Text>
         </View>

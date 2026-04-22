@@ -9,6 +9,7 @@ import {
   Pressable,
   ScrollView,
 } from "react-native";
+import { getThemeSurfaces } from "../../themes/manifestoThemes";
 
 const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
 const GHOST = ["G", "H", "O", "S", "T"];
@@ -38,7 +39,8 @@ async function isDictionaryWord(word) {
  *
  * First to spell G-H-O-S-T loses the match.
  */
-export default function Ghost({ accent = "#a855f7" }) {
+export default function Ghost({ accent = "#a855f7", surfaces: injected }) {
+  const surfaces = injected ?? getThemeSurfaces(null);
   const [p1Name, setP1Name] = useState("Driver");
   const [p2Name, setP2Name] = useState("Passenger");
   const [editingNames, setEditingNames] = useState(true);
@@ -166,37 +168,45 @@ export default function Ghost({ accent = "#a855f7" }) {
   if (editingNames) {
     return (
       <ScrollView className="flex-1 pt-6">
-        <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+        <Text
+          className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+        >
           Ghost · Word Chain
         </Text>
-        <Text className="text-slate-900 text-xl font-semibold leading-7 mb-4">
+        <Text
+          className={`text-xl font-semibold leading-7 mb-4 ${surfaces.titleText}`}
+        >
           Who's playing?
         </Text>
-        <Text className="text-slate-500 text-sm mb-4 leading-5">
+        <Text className={`text-sm mb-4 leading-5 ${surfaces.mutedText}`}>
           Take turns adding a letter. Don't finish a real word (4+ letters).
           Challenge when you think the fragment can't lead to one. First to
           spell GHOST loses.
         </Text>
 
-        <Text className="text-slate-500 text-xs uppercase tracking-wider mb-1">
+        <Text
+          className={`text-xs uppercase tracking-wider mb-1 ${surfaces.subtleText}`}
+        >
           Player 1
         </Text>
         <TextInput
           value={p1Name}
           onChangeText={setP1Name}
           placeholder="Driver"
-          placeholderTextColor="#94a3b8"
-          className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-4"
+          placeholderTextColor={surfaces.placeholderColor}
+          className={`p-4 rounded-xl mb-4 ${surfaces.inputBg}`}
         />
-        <Text className="text-slate-500 text-xs uppercase tracking-wider mb-1">
+        <Text
+          className={`text-xs uppercase tracking-wider mb-1 ${surfaces.subtleText}`}
+        >
           Player 2
         </Text>
         <TextInput
           value={p2Name}
           onChangeText={setP2Name}
           placeholder="Passenger"
-          placeholderTextColor="#94a3b8"
-          className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-6"
+          placeholderTextColor={surfaces.placeholderColor}
+          className={`p-4 rounded-xl mb-6 ${surfaces.inputBg}`}
         />
 
         <TouchableOpacity
@@ -225,17 +235,21 @@ export default function Ghost({ accent = "#a855f7" }) {
         {[0, 1].map((i) => (
           <View
             key={i}
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-4 mx-1"
+            className={`flex-1 rounded-2xl p-4 mx-1 ${surfaces.cardBg}`}
             style={
               turn === i
-                ? { borderColor: accent, backgroundColor: accent + "11" }
+                ? { borderColor: accent, backgroundColor: accent + "22" }
                 : undefined
             }
           >
-            <Text className="text-slate-500 text-xs uppercase tracking-wider">
+            <Text
+              className={`text-xs uppercase tracking-wider ${surfaces.subtleText}`}
+            >
               {turn === i ? "Acting now" : "Waiting"}
             </Text>
-            <Text className="text-slate-900 font-bold text-base mt-1">
+            <Text
+              className={`font-bold text-base mt-1 ${surfaces.titleText}`}
+            >
               {names[i]}
             </Text>
             <View className="flex-row mt-2">
@@ -245,7 +259,13 @@ export default function Ghost({ accent = "#a855f7" }) {
                   <Text
                     key={idx}
                     className="font-black text-lg mr-1"
-                    style={{ color: earned ? accent : "#cbd5e1" }}
+                    style={{
+                      color: earned
+                        ? accent
+                        : surfaces.isDark
+                        ? "rgba(255,255,255,0.25)"
+                        : "#cbd5e1",
+                    }}
                   >
                     {l}
                   </Text>
@@ -256,22 +276,26 @@ export default function Ghost({ accent = "#a855f7" }) {
         ))}
       </View>
 
-      <View className="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-4 items-center">
-        <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+      <View
+        className={`rounded-2xl p-6 mb-4 items-center ${surfaces.cardBg}`}
+      >
+        <Text
+          className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+        >
           Fragment
         </Text>
         <Text
-          className="text-slate-900 font-black tracking-widest"
+          className={`font-black tracking-widest ${surfaces.titleText}`}
           style={{ fontSize: 36, letterSpacing: 6 }}
         >
           {fragment ? fragment.toUpperCase() : "—"}
         </Text>
-        <Text className="text-slate-500 text-xs mt-2">
+        <Text className={`text-xs mt-2 ${surfaces.mutedText}`}>
           {fragment.length} letter{fragment.length === 1 ? "" : "s"}
         </Text>
       </View>
 
-      <Text className="text-slate-700 font-semibold mb-2">
+      <Text className={`font-semibold mb-2 ${surfaces.titleText}`}>
         {names[turn]}'s turn — tap a letter
       </Text>
       <View className="flex-row flex-wrap -mx-1 mb-3">
@@ -284,13 +308,17 @@ export default function Ghost({ accent = "#a855f7" }) {
             style={{
               width: 38,
               height: 44,
-              backgroundColor: "#f8fafc",
+              backgroundColor: surfaces.isDark
+                ? "rgba(255,255,255,0.08)"
+                : "#f8fafc",
               borderWidth: 1,
-              borderColor: "#e2e8f0",
+              borderColor: surfaces.isDark
+                ? "rgba(255,255,255,0.15)"
+                : "#e2e8f0",
               opacity: checking ? 0.5 : 1,
             }}
           >
-            <Text className="text-slate-900 font-bold text-lg">
+            <Text className={`font-bold text-lg ${surfaces.titleText}`}>
               {letter.toUpperCase()}
             </Text>
           </TouchableOpacity>
@@ -315,7 +343,7 @@ export default function Ghost({ accent = "#a855f7" }) {
         onPress={() => resetRound(roundStarter === 0 ? 1 : 0)}
         className="rounded-2xl p-3 mb-8"
       >
-        <Text className="text-slate-500 text-center font-semibold">
+        <Text className={`text-center font-semibold ${surfaces.mutedText}`}>
           Skip round
         </Text>
       </TouchableOpacity>
@@ -323,7 +351,9 @@ export default function Ghost({ accent = "#a855f7" }) {
       {checking && (
         <View className="flex-row items-center justify-center mb-6">
           <ActivityIndicator color={accent} />
-          <Text className="text-slate-500 ml-2">Consulting the referee…</Text>
+          <Text className={`ml-2 ${surfaces.mutedText}`}>
+            Consulting the referee…
+          </Text>
         </View>
       )}
 

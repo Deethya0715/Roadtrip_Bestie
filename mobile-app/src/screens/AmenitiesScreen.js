@@ -6,9 +6,10 @@ import {
   ScrollView,
   Modal,
   Linking,
-  Platform,
   Alert,
 } from "react-native";
+import { getThemeSurfaces } from "../themes/manifestoThemes";
+import ThemedBackdrop from "../themes/ThemedBackdrop";
 
 const AMENITIES = [
   {
@@ -99,22 +100,22 @@ const AMENITIES = [
 
 function openMapsSearch(query) {
   const encoded = encodeURIComponent(`${query} near me`);
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
 
-  const url =
-    Platform.OS === "ios"
-      ? `http://maps.apple.com/?q=${encoded}`
-      : `geo:0,0?q=${encoded}`;
-
-  Linking.openURL(url).catch(() => {
-    Linking.openURL(
-      `https://www.google.com/maps/search/?api=1&query=${encoded}`
-    ).catch((err) => {
-      Alert.alert("Couldn't open maps", err.message ?? "Try again in a moment.");
-    });
+  Linking.openURL(googleMapsUrl).catch((err) => {
+    Alert.alert("Couldn't open maps", err.message ?? "Try again in a moment.");
   });
 }
 
-export default function AmenitiesScreen({ visible, onClose, accent = "#3b82f6" }) {
+export default function AmenitiesScreen({
+  visible,
+  onClose,
+  accent = "#3b82f6",
+  theme = null,
+}) {
+  const surfaces = getThemeSurfaces(theme);
+  const effectiveAccent = surfaces.isThemed ? surfaces.accent : accent;
+
   return (
     <Modal
       visible={visible}
@@ -122,26 +123,32 @@ export default function AmenitiesScreen({ visible, onClose, accent = "#3b82f6" }
       onRequestClose={onClose}
       presentationStyle="pageSheet"
     >
-      <View className="flex-1 bg-white">
-        <View className="px-6 pt-12 pb-4 flex-row items-center justify-between border-b border-slate-100">
+      <View className={`flex-1 ${surfaces.rootBg}`}>
+        <ThemedBackdrop surfaces={surfaces} />
+
+        <View
+          className={`px-6 pt-12 pb-4 flex-row items-center justify-between ${surfaces.headerBorder}`}
+        >
           <View>
-            <Text className="text-xs uppercase tracking-widest text-slate-500">
+            <Text
+              className={`text-xs uppercase tracking-widest ${surfaces.subtleText}`}
+            >
               Along the way
             </Text>
-            <Text className="text-2xl font-black text-slate-900 mt-1">
+            <Text className={`text-2xl font-black mt-1 ${surfaces.titleText}`}>
               Amenities
             </Text>
           </View>
           <TouchableOpacity
             onPress={onClose}
-            className="px-4 py-2 rounded-full bg-slate-100"
+            className={`px-4 py-2 rounded-full ${surfaces.pillBg}`}
           >
-            <Text className="text-slate-700 font-semibold">Close</Text>
+            <Text className={`font-semibold ${surfaces.pillText}`}>Close</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView className="flex-1 px-5 pt-5">
-          <Text className="text-slate-500 text-sm px-1 mb-3">
+          <Text className={`text-sm px-1 mb-3 ${surfaces.mutedText}`}>
             Tap to open maps with nearby results.
           </Text>
 
@@ -150,14 +157,16 @@ export default function AmenitiesScreen({ visible, onClose, accent = "#3b82f6" }
               <TouchableOpacity
                 key={a.id}
                 onPress={() => openMapsSearch(a.query)}
-                className="m-1 bg-slate-50 border border-slate-200 rounded-2xl p-4"
+                className={`m-1 rounded-2xl p-4 ${surfaces.cardBg}`}
                 style={{ width: "48%" }}
               >
                 <Text className="text-3xl mb-2">{a.icon}</Text>
-                <Text className="text-slate-900 font-bold text-base">
+                <Text className={`font-bold text-base ${surfaces.titleText}`}>
                   {a.label}
                 </Text>
-                <Text className="text-slate-500 text-xs mt-1">{a.blurb}</Text>
+                <Text className={`text-xs mt-1 ${surfaces.mutedText}`}>
+                  {a.blurb}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -165,7 +174,7 @@ export default function AmenitiesScreen({ visible, onClose, accent = "#3b82f6" }
           <TouchableOpacity
             onPress={() => openMapsSearch("anything")}
             className="mt-4 mb-10 rounded-2xl p-5"
-            style={{ backgroundColor: accent }}
+            style={{ backgroundColor: effectiveAccent }}
           >
             <Text className="text-white text-center font-bold text-base">
               Open Maps

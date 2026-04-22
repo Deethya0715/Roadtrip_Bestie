@@ -131,7 +131,11 @@ export default function DriverHome({
             accent={accent}
           />
 
-          <HomeFeatureCards accent={accent} isDarkBase={isDarkBase} />
+          <HomeFeatureCards
+            accent={accent}
+            isDarkBase={isDarkBase}
+            theme={isManifesto ? activeTheme : null}
+          />
 
           <TouchableOpacity
             onPress={onLeave}

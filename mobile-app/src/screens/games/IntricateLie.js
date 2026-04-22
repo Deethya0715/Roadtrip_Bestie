@@ -6,6 +6,7 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
+import { getThemeSurfaces } from "../../themes/manifestoThemes";
 
 const PROMPTS = [
   "Tell three stories about yourself — two true, one lie. Guess the lie.",
@@ -29,7 +30,11 @@ const PROMPTS = [
  * truth or a lie. The passenger (or whoever's holding the phone) keeps
  * score with quick-tap buttons.
  */
-export default function IntricateLie({ accent = "#a855f7" }) {
+export default function IntricateLie({
+  accent = "#a855f7",
+  surfaces: injected,
+}) {
+  const surfaces = injected ?? getThemeSurfaces(null);
   const [p1Name, setP1Name] = useState("Driver");
   const [p2Name, setP2Name] = useState("Passenger");
   const [editing, setEditing] = useState(true);
@@ -67,35 +72,43 @@ export default function IntricateLie({ accent = "#a855f7" }) {
   if (editing) {
     return (
       <ScrollView className="flex-1 pt-6">
-        <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+        <Text
+          className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+        >
           The Intricate Lie
         </Text>
-        <Text className="text-slate-900 text-xl font-semibold leading-7 mb-4">
+        <Text
+          className={`text-xl font-semibold leading-7 mb-4 ${surfaces.titleText}`}
+        >
           Who's bluffing today?
         </Text>
-        <Text className="text-slate-500 text-sm mb-4 leading-5">
+        <Text className={`text-sm mb-4 leading-5 ${surfaces.mutedText}`}>
           One player tells a story; the other guesses if it's true or a lie.
           Tap the name of whoever wins each exchange to keep score.
         </Text>
-        <Text className="text-slate-500 text-xs uppercase tracking-wider mb-1">
+        <Text
+          className={`text-xs uppercase tracking-wider mb-1 ${surfaces.subtleText}`}
+        >
           Player 1
         </Text>
         <TextInput
           value={p1Name}
           onChangeText={setP1Name}
           placeholder="Driver"
-          placeholderTextColor="#94a3b8"
-          className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-4"
+          placeholderTextColor={surfaces.placeholderColor}
+          className={`p-4 rounded-xl mb-4 ${surfaces.inputBg}`}
         />
-        <Text className="text-slate-500 text-xs uppercase tracking-wider mb-1">
+        <Text
+          className={`text-xs uppercase tracking-wider mb-1 ${surfaces.subtleText}`}
+        >
           Player 2
         </Text>
         <TextInput
           value={p2Name}
           onChangeText={setP2Name}
           placeholder="Passenger"
-          placeholderTextColor="#94a3b8"
-          className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-6"
+          placeholderTextColor={surfaces.placeholderColor}
+          className={`p-4 rounded-xl mb-6 ${surfaces.inputBg}`}
         />
         <TouchableOpacity
           onPress={() => {
@@ -121,9 +134,11 @@ export default function IntricateLie({ accent = "#a855f7" }) {
         {[0, 1].map((i) => (
           <View
             key={i}
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-4 mx-1"
+            className={`flex-1 rounded-2xl p-4 mx-1 ${surfaces.cardBg}`}
           >
-            <Text className="text-slate-500 text-xs uppercase tracking-wider">
+            <Text
+              className={`text-xs uppercase tracking-wider ${surfaces.subtleText}`}
+            >
               {names[i]}
             </Text>
             <Text
@@ -136,19 +151,23 @@ export default function IntricateLie({ accent = "#a855f7" }) {
         ))}
       </View>
 
-      <View className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-4">
-        <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+      <View className={`rounded-2xl p-5 mb-4 ${surfaces.cardBg}`}>
+        <Text
+          className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+        >
           Storyteller · {names[tellerIdx]}
         </Text>
-        <Text className="text-slate-900 text-lg font-semibold leading-7">
+        <Text
+          className={`text-lg font-semibold leading-7 ${surfaces.titleText}`}
+        >
           {prompt}
         </Text>
-        <Text className="text-slate-500 text-xs mt-3">
+        <Text className={`text-xs mt-3 ${surfaces.mutedText}`}>
           {names[guesserIdx]} has to call it: truth or lie?
         </Text>
       </View>
 
-      <Text className="text-slate-700 font-semibold mb-2">
+      <Text className={`font-semibold mb-2 ${surfaces.titleText}`}>
         Who won that exchange?
       </Text>
       <View className="flex-row mb-2">
@@ -163,7 +182,9 @@ export default function IntricateLie({ accent = "#a855f7" }) {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => award(tellerIdx, "pulled off the bluff")}
-          className="flex-1 rounded-2xl p-4 bg-slate-900"
+          className={`flex-1 rounded-2xl p-4 ${
+            surfaces.isDark ? "bg-white/15" : "bg-slate-900"
+          }`}
         >
           <Text className="text-white text-center font-bold">
             {names[tellerIdx]} fooled them
@@ -173,9 +194,9 @@ export default function IntricateLie({ accent = "#a855f7" }) {
 
       <TouchableOpacity
         onPress={nextRound}
-        className="rounded-2xl p-4 mt-3 bg-slate-100"
+        className={`rounded-2xl p-4 mt-3 ${surfaces.secondaryBtnBg}`}
       >
-        <Text className="text-slate-900 text-center font-bold">
+        <Text className={`text-center font-bold ${surfaces.secondaryBtnText}`}>
           Next prompt · swap teller
         </Text>
       </TouchableOpacity>
@@ -184,23 +205,27 @@ export default function IntricateLie({ accent = "#a855f7" }) {
         onPress={resetScores}
         className="rounded-2xl p-3 mt-2 mb-6"
       >
-        <Text className="text-slate-500 text-center font-semibold">
+        <Text className={`text-center font-semibold ${surfaces.mutedText}`}>
           Reset scoreboard
         </Text>
       </TouchableOpacity>
 
       {history.length > 0 && (
         <View className="mb-8">
-          <Text className="text-xs uppercase tracking-widest text-slate-500 mb-2">
+          <Text
+            className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
+          >
             Recent
           </Text>
           {history.map((h) => (
             <View
               key={h.id}
-              className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl p-3 mb-2"
+              className={`flex-row items-center rounded-xl p-3 mb-2 ${surfaces.cardBg}`}
             >
-              <Text className="text-slate-900 font-bold">{h.name}</Text>
-              <Text className="text-slate-500 ml-2">{h.label}</Text>
+              <Text className={`font-bold ${surfaces.titleText}`}>
+                {h.name}
+              </Text>
+              <Text className={`ml-2 ${surfaces.mutedText}`}>{h.label}</Text>
             </View>
           ))}
         </View>

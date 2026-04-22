@@ -200,6 +200,78 @@ export const resolveThemeAppearance = (theme, hour) => {
   };
 };
 
+/**
+ * One-shot bundle of class strings + colors that every themed screen can
+ * consume to render consistent headers, cards, inputs, pills, and text.
+ *
+ * Pass `null` / `undefined` to get the plain light-mode defaults used when
+ * Manifesto Mode is disabled — so this helper is safe to wire through
+ * every screen without branching at every callsite.
+ */
+export const getThemeSurfaces = (theme) => {
+  const appearance = theme ? resolveThemeAppearance(theme) : null;
+  const isDark = appearance?.base === "dark";
+  const accent = appearance?.accent ?? "#0f172a";
+  const posterColor = appearance?.posterColor ?? null;
+  const posterImage = theme?.poster ?? null;
+
+  if (!theme) {
+    return {
+      theme: null,
+      isThemed: false,
+      isDark: false,
+      accent: "#0f172a",
+      posterColor: null,
+      posterImage: null,
+      posterOpacity: 0,
+      rootBg: "bg-white",
+      headerBorder: "border-b border-slate-100",
+      titleText: "text-slate-900",
+      mutedText: "text-slate-500",
+      subtleText: "text-slate-400",
+      cardBg: "bg-slate-50 border border-slate-200",
+      subCardBg: "bg-white",
+      pillBg: "bg-slate-100",
+      pillText: "text-slate-700",
+      inputBg: "bg-slate-50 border border-slate-200 text-slate-900",
+      placeholderColor: "#94a3b8",
+      secondaryBtnBg: "bg-slate-100",
+      secondaryBtnText: "text-slate-900",
+      dividerColor: "#e2e8f0",
+    };
+  }
+
+  return {
+    theme,
+    isThemed: true,
+    isDark,
+    accent,
+    posterColor,
+    posterImage,
+    posterOpacity: isDark ? 0.28 : 0.22,
+    rootBg: isDark ? "bg-black" : "bg-white",
+    headerBorder: isDark
+      ? "border-b border-white/10"
+      : "border-b border-slate-200/60",
+    titleText: isDark ? "text-white" : "text-slate-900",
+    mutedText: isDark ? "text-slate-300" : "text-slate-600",
+    subtleText: isDark ? "text-slate-400" : "text-slate-500",
+    cardBg: isDark
+      ? "bg-white/10 border border-white/15"
+      : "bg-white/70 border border-slate-200",
+    subCardBg: isDark ? "bg-white/5" : "bg-white/80",
+    pillBg: isDark ? "bg-white/15" : "bg-slate-100",
+    pillText: isDark ? "text-white" : "text-slate-700",
+    inputBg: isDark
+      ? "bg-white/10 border border-white/20 text-white"
+      : "bg-white/80 border border-slate-200 text-slate-900",
+    placeholderColor: isDark ? "#94a3b8" : "#94a3b8",
+    secondaryBtnBg: isDark ? "bg-white/15" : "bg-slate-100",
+    secondaryBtnText: isDark ? "text-white" : "text-slate-900",
+    dividerColor: isDark ? "rgba(255,255,255,0.12)" : "#e2e8f0",
+  };
+};
+
 // Convenience: themes grouped the same way we show them in the picker.
 export const THEME_GROUPS = [
   {
