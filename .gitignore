@@ -1,0 +1,50 @@
+# Root-level safety net. Subfolders (mobile-app, backend-api) have their own
+# .gitignore files with stack-specific rules. The entries below apply to the
+# whole monorepo just in case.
+
+# Dependencies
+**/node_modules/
+**/.pnp
+**/.pnp.*
+**/.yarn/*
+!**/.yarn/patches
+!**/.yarn/plugins
+!**/.yarn/releases
+!**/.yarn/versions
+
+# Build output
+**/dist/
+**/build/
+**/.next/
+**/out/
+**/web-build/
+
+# Expo / React Native
+**/.expo/
+**/.expo-shared/
+**/expo-env.d.ts
+**/.metro-health-check*
+
+# Env files (NEVER commit secrets)
+.env
+.env.*
+!.env.example
+
+# Logs
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Prisma generated
+**/app/generated/prisma/
+
+# TypeScript incremental
+**/*.tsbuildinfo
