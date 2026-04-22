@@ -1,9 +1,10 @@
 import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
-import {
-  resolveThemeAppearance,
-  textOnColor,
-} from "../themes/manifestoThemes";
+import { resolveThemeAppearance } from "../themes/manifestoThemes";
+import HomeFeatureCards from "./HomeFeatureCards";
+import { useSafeCheckIn } from "../features/safeCheckIn/useSafeCheckIn";
+import SafeCheckInPanel from "../features/safeCheckIn/SafeCheckInPanel";
+import LeavingCheckInModal from "../features/safeCheckIn/LeavingCheckInModal";
 
 export default function DriverHome({
   name,
@@ -12,6 +13,7 @@ export default function DriverHome({
   vibeMode = "standard",
   activeTheme,
 }) {
+  const safe = useSafeCheckIn({ role: "driver", name, session });
   const isManifesto = vibeMode === "manifesto";
 
   const appearance = useMemo(
@@ -22,7 +24,6 @@ export default function DriverHome({
   const isDarkBase = isManifesto && appearance?.base === "dark";
   const accent =
     isManifesto && appearance?.accent ? appearance.accent : "#3b82f6";
-  const accentTextColor = textOnColor(accent);
   const posterColor = isManifesto ? appearance?.posterColor : null;
 
   const baseBg = isDarkBase ? "bg-black" : "bg-white";
@@ -119,51 +120,18 @@ export default function DriverHome({
             </View>
           </View>
 
-          <Text className={`${titleColor} text-lg font-bold mt-4 mb-3`}>
-            Quick Actions
-          </Text>
+          <SafeCheckInPanel
+            role="driver"
+            entries={safe.entries}
+            latestByType={safe.latestByType}
+            atCharger={safe.atCharger}
+            onSimulateArrival={safe.simulateArrival}
+            onSimulateDeparture={safe.simulateDeparture}
+            isDark={isDarkBase}
+            accent={accent}
+          />
 
-          <TouchableOpacity
-            className="rounded-2xl p-5 mb-3"
-            style={{ backgroundColor: isManifesto ? accent : "#3b82f6" }}
-          >
-            <Text
-              className="font-bold text-base"
-              style={{ color: isManifesto ? accentTextColor : "#ffffff" }}
-            >
-              Start Navigation
-            </Text>
-            <Text
-              className="text-xs mt-1"
-              style={{
-                color: isManifesto
-                  ? accentTextColor === "#ffffff"
-                    ? "rgba(255,255,255,0.8)"
-                    : "rgba(15,23,42,0.7)"
-                  : "rgba(255,255,255,0.8)",
-              }}
-            >
-              Open maps with your route
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className={`${cardBg} rounded-2xl p-5 mb-3`}>
-            <Text className={`${cardValue} font-bold text-base`}>
-              Play Music
-            </Text>
-            <Text className={`${cardLabel} text-xs mt-1`}>
-              Road trip playlist
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className={`${cardBg} rounded-2xl p-5 mb-3`}>
-            <Text className={`${cardValue} font-bold text-base`}>
-              Voice Commands
-            </Text>
-            <Text className={`${cardLabel} text-xs mt-1`}>
-              Hands-free controls
-            </Text>
-          </TouchableOpacity>
+          <HomeFeatureCards accent={accent} isDarkBase={isDarkBase} />
 
           <TouchableOpacity
             onPress={onLeave}
@@ -175,6 +143,14 @@ export default function DriverHome({
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <LeavingCheckInModal
+        visible={safe.leavingModalOpen}
+        onClose={() => safe.setLeavingModalOpen(false)}
+        onSubmit={safe.postLeaving}
+        defaultDriver={session?.driverName ?? name}
+        chargerName={safe.atCharger?.name}
+      />
     </View>
   );
 }

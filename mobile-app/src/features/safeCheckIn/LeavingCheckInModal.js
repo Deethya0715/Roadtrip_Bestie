@@ -1,0 +1,172 @@
+import React, { useEffect, useState } from "react";
+import {
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+/**
+ * Mandatory handoff checklist shown to the driver the moment we detect
+ * the car leaving the charger. All boxes must be ticked before the
+ * "Confirm & Share" button unlocks — this is the whole point of the
+ * check-in, the driver can't skip past a forgotten charging cable.
+ */
+const CHECKLIST_ITEMS = [
+  { id: "unplugged", label: "Charging cable unplugged & returned" },
+  { id: "newDriver", label: "New driver ready & buckled" },
+  { id: "doors", label: "Doors closed, trash out, nothing forgotten" },
+];
+
+export default function LeavingCheckInModal({
+  visible,
+  onClose,
+  onSubmit,
+  defaultDriver,
+  chargerName,
+}) {
+  const [checked, setChecked] = useState({});
+  const [newDriver, setNewDriver] = useState(defaultDriver ?? "");
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setChecked({});
+      setNewDriver(defaultDriver ?? "");
+      setNotes("");
+      setSubmitting(false);
+    }
+  }, [visible, defaultDriver]);
+
+  const allChecked = CHECKLIST_ITEMS.every((i) => checked[i.id]);
+  const canSubmit =
+    !submitting && allChecked && newDriver.trim().length >= 2;
+
+  const toggle = (id) =>
+    setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    await onSubmit({
+      newDriver: newDriver.trim(),
+      notes: notes.trim() || null,
+      checklist: CHECKLIST_ITEMS.map((i) => ({
+        id: i.id,
+        label: i.label,
+        done: !!checked[i.id],
+      })),
+    });
+    setSubmitting(false);
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <Pressable onPress={onClose} className="flex-1 bg-black/60 justify-end">
+        <Pressable
+          onPress={() => {}}
+          className="p-6 bg-white rounded-t-3xl border-t border-slate-200"
+        >
+          <Text className="text-amber-600 text-xs uppercase tracking-widest">
+            Leaving · mandatory
+          </Text>
+          <Text className="text-slate-900 text-2xl font-black mt-1">
+            Pulling out of {chargerName ?? "the charger"}?
+          </Text>
+          <Text className="text-slate-500 mt-2 mb-4">
+            Tap each item once you&apos;ve confirmed it. This check-in
+            can&apos;t be skipped.
+          </Text>
+
+          <View className="mb-4">
+            {CHECKLIST_ITEMS.map((item) => {
+              const done = !!checked[item.id];
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => toggle(item.id)}
+                  className={`flex-row items-center p-4 rounded-2xl mb-2 border ${
+                    done
+                      ? "bg-green-50 border-green-200"
+                      : "bg-slate-50 border-slate-200"
+                  }`}
+                >
+                  <View
+                    className={`w-6 h-6 rounded-md mr-3 items-center justify-center border ${
+                      done
+                        ? "bg-green-500 border-green-500"
+                        : "bg-white border-slate-300"
+                    }`}
+                  >
+                    {done && (
+                      <Text className="text-white font-black text-xs">✓</Text>
+                    )}
+                  </View>
+                  <Text
+                    className={`flex-1 ${
+                      done ? "text-green-900 font-semibold" : "text-slate-800"
+                    }`}
+                  >
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text className="text-slate-500 text-xs uppercase tracking-wider mb-1">
+            New driver
+          </Text>
+          <TextInput
+            value={newDriver}
+            onChangeText={setNewDriver}
+            placeholder="Who's taking the wheel?"
+            placeholderTextColor="#94a3b8"
+            className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-3"
+          />
+
+          <Text className="text-slate-500 text-xs uppercase tracking-wider mb-1">
+            Notes (optional)
+          </Text>
+          <TextInput
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="ETA Vegas 11pm"
+            placeholderTextColor="#94a3b8"
+            className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-4"
+          />
+
+          <View className="flex-row">
+            <TouchableOpacity
+              onPress={onClose}
+              className="p-4 rounded-xl border border-slate-200 mr-2 flex-1"
+            >
+              <Text className="text-slate-600 text-center font-semibold">
+                Not yet
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={!canSubmit}
+              className={`p-4 rounded-xl flex-[2] ${
+                canSubmit ? "bg-slate-900" : "bg-slate-300"
+              }`}
+            >
+              <Text className="text-white text-center font-bold text-lg">
+                {submitting ? "Sharing..." : "Confirm & Share"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}

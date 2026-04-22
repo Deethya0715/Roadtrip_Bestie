@@ -27,6 +27,10 @@ model TripSession {
   driverName    String?
   passengerName String?
   activeTheme   String  @default("Phineas")
+  // JSON-encoded array of Safe Check-In events (arrived / vibe / leaving /
+  // blackout). Stored as a plain string so we don't need a Postgres-only
+  // Json column. See /api/check-in for the schema of each entry.
+  checkInLogJson String @default("[]")
   updatedAt     DateTime @updatedAt
 }
 
