@@ -192,15 +192,6 @@ export default function PassengerHome({
 
           <TouchableOpacity className={`${cardBg} rounded-2xl p-5 mb-3`}>
             <Text className={`${cardValue} font-bold text-base`}>
-              Travel Playlist
-            </Text>
-            <Text className={`${cardLabel} text-xs mt-1`}>
-              Queue up some tunes
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className={`${cardBg} rounded-2xl p-5 mb-3`}>
-            <Text className={`${cardValue} font-bold text-base`}>
               Explore Nearby
             </Text>
             <Text className={`${cardLabel} text-xs mt-1`}>
