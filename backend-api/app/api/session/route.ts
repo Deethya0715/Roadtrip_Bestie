@@ -78,8 +78,11 @@ export async function POST(req: NextRequest) {
   try {
     const current = await getOrCreateSession();
     const field = role === "driver" ? "driverName" : "passengerName";
+    const trimmedName = name.trim();
 
-    if (current[field]) {
+    // Allow the same person to rejoin (e.g. after an app reload) — only
+    // reject when a *different* name already holds the seat.
+    if (current[field] && current[field] !== trimmedName) {
       return NextResponse.json(
         { error: `${role} seat is already taken`, session: current },
         { status: 409 }
@@ -88,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     const updated = await prisma.tripSession.update({
       where: { id: SESSION_ID },
-      data: { [field]: name.trim() },
+      data: { [field]: trimmedName },
     });
 
     return NextResponse.json({

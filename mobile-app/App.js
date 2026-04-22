@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import "./global.css";
 import { getSession, claimSeat, leaveSeat } from "./src/api/session";
+import {
+  saveLocalSession,
+  loadLocalSession,
+  clearLocalSession,
+} from "./src/storage/localSession";
 import DriverHome from "./src/screens/DriverHome";
 import PassengerHome from "./src/screens/PassengerHome";
 
@@ -16,6 +21,51 @@ export default function App() {
     passengerName: null,
   });
   const [isJoining, setIsJoining] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(true);
+
+  // On launch: if we have a local session, skip the role picker and go
+  // straight to the homepage. Re-assert the seat on the backend so the
+  // session row is in sync even if it was reset (or we're coming back
+  // from a reload). Only "End Trip" clears local storage.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const stored = await loadLocalSession();
+
+        if (cancelled) return;
+
+        if (stored) {
+          const result = await claimSeat(stored.role, stored.name);
+          if (cancelled) return;
+
+          if (result.ok) {
+            setSession(result.session);
+            setRole(stored.role);
+            setName(stored.name);
+            setIsConfirmed(true);
+          } else {
+            // Someone else is holding our seat under a different name —
+            // fall back to role selection.
+            if (result.session) setSession(result.session);
+            await clearLocalSession();
+          }
+        } else {
+          const current = await getSession().catch(() => null);
+          if (!cancelled && current) setSession(current);
+        }
+      } catch (err) {
+        console.warn("Session restore failed:", err.message);
+      } finally {
+        if (!cancelled) setIsRestoring(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,7 +79,6 @@ export default function App() {
       }
     };
 
-    tick();
     const interval = setInterval(tick, POLL_INTERVAL_MS);
 
     return () => {
@@ -39,14 +88,8 @@ export default function App() {
   }, []);
 
   const handleRoleSelection = (selectedRole) => {
-    if (selectedRole === "driver" && session.driverName) {
-      Alert.alert("Error", "Driver seat is already taken!");
-      return;
-    }
-    if (selectedRole === "passenger" && session.passengerName) {
-      Alert.alert("Error", "Passenger seat is already taken!");
-      return;
-    }
+    // Don't block taken seats — the user might be rejoining after an app
+    // reload. The backend allows a rejoin if the name matches the seat.
     setRole(selectedRole);
   };
 
@@ -68,7 +111,29 @@ export default function App() {
 
     setSession(result.session);
     setIsConfirmed(true);
+    await saveLocalSession({ role, name });
   };
+
+  const handleLeave = async () => {
+    try {
+      await leaveSeat(role);
+    } catch (err) {
+      console.warn("leaveSeat failed:", err.message);
+    }
+    await clearLocalSession();
+    setIsConfirmed(false);
+    setRole(null);
+    setName("");
+  };
+
+  if (isRestoring) {
+    return (
+      <View className="flex-1 bg-slate-900 items-center justify-center">
+        <ActivityIndicator size="large" color="#60a5fa" />
+        <Text className="text-slate-400 mt-4">Loading your trip...</Text>
+      </View>
+    );
+  }
 
   if (!isConfirmed) {
     return (
@@ -109,6 +174,17 @@ export default function App() {
 
         {role && (
           <View>
+            {(() => {
+              const takenName =
+                role === "driver" ? session.driverName : session.passengerName;
+              if (!takenName) return null;
+              return (
+                <Text className="text-amber-300 text-center mb-3">
+                  This seat is held by "{takenName}". Enter the same name to
+                  rejoin.
+                </Text>
+              );
+            })()}
             <TextInput
               placeholder="Enter your name"
               placeholderTextColor="#94a3b8"
@@ -132,17 +208,6 @@ export default function App() {
       </View>
     );
   }
-
-  const handleLeave = async () => {
-    try {
-      await leaveSeat(role);
-    } catch (err) {
-      console.warn("leaveSeat failed:", err.message);
-    }
-    setIsConfirmed(false);
-    setRole(null);
-    setName("");
-  };
 
   if (role === "driver") {
     return <DriverHome name={name} session={session} onLeave={handleLeave} />;
