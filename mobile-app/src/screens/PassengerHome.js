@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
 } from "react-native";
 import {
   MANIFESTO_THEMES,
+  THEME_GROUPS,
   getNextTheme,
+  resolveThemeAppearance,
 } from "../themes/manifestoThemes";
 
 export default function PassengerHome({
@@ -25,6 +27,17 @@ export default function PassengerHome({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const isManifesto = vibeMode === "manifesto";
 
+  // Resolve what the current theme should look like *right now* (adaptive
+  // themes depend on the local hour). Recomputed whenever the theme changes.
+  const appearance = useMemo(
+    () => (isManifesto ? resolveThemeAppearance(activeTheme) : null),
+    [isManifesto, activeTheme]
+  );
+
+  const isDarkBase = isManifesto && appearance?.base === "dark";
+  const accent = isManifesto && appearance?.accent ? appearance.accent : "#a855f7";
+  const posterColor = isManifesto ? appearance?.posterColor : null;
+
   const toggleVibe = () => {
     if (isManifesto) {
       setVibeMode("standard");
@@ -34,27 +47,30 @@ export default function PassengerHome({
     }
   };
 
-  const cycleTheme = () => {
-    setActiveTheme(getNextTheme(activeTheme));
-  };
+  const cycleTheme = () => setActiveTheme(getNextTheme(activeTheme));
 
-  const accent = isManifesto && activeTheme ? activeTheme.accent : "#a855f7";
-
-  const baseBg = isManifesto ? "bg-black" : "bg-white";
-  const titleColor = isManifesto ? "text-white" : "text-slate-900";
-  const mutedColor = isManifesto ? "text-slate-300" : "text-slate-500";
-  const cardBg = isManifesto
+  const baseBg = isDarkBase ? "bg-black" : "bg-white";
+  const titleColor = isDarkBase ? "text-white" : "text-slate-900";
+  const mutedColor = isDarkBase ? "text-slate-300" : "text-slate-500";
+  const cardBg = isDarkBase
     ? "bg-white/5 border border-white/10"
     : "bg-slate-50 border border-slate-200";
-  const cardLabel = isManifesto ? "text-slate-400" : "text-slate-500";
-  const cardValue = isManifesto ? "text-white" : "text-slate-900";
+  const cardLabel = isDarkBase ? "text-slate-400" : "text-slate-500";
+  const cardValue = isDarkBase ? "text-white" : "text-slate-900";
+  const posterOpacity = isDarkBase ? 0.35 : 0.25;
 
   return (
     <View className={`flex-1 ${baseBg}`}>
+      {isManifesto && posterColor && (
+        <View
+          className="absolute inset-0"
+          style={{ backgroundColor: posterColor, opacity: posterOpacity }}
+        />
+      )}
       {isManifesto && activeTheme?.poster && (
         <Image
           source={activeTheme.poster}
-          className="absolute inset-0 w-full h-full opacity-15"
+          className="absolute inset-0 w-full h-full opacity-20"
           style={{ tintColor: "gray" }}
           resizeMode="cover"
         />
@@ -86,12 +102,12 @@ export default function PassengerHome({
           <TouchableOpacity
             onPress={() => setSettingsOpen(true)}
             className={`px-3 py-2 rounded-full border ${
-              isManifesto
+              isDarkBase
                 ? "border-white/30 bg-white/10"
                 : "border-slate-200 bg-white"
             }`}
           >
-            <Text className={isManifesto ? "text-white" : "text-slate-900"}>
+            <Text className={isDarkBase ? "text-white" : "text-slate-900"}>
               Settings
             </Text>
           </TouchableOpacity>
@@ -209,10 +225,7 @@ function PassengerSettings({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable
-        onPress={onClose}
-        className="flex-1 bg-black/40 justify-end"
-      >
+      <Pressable onPress={onClose} className="flex-1 bg-black/40 justify-end">
         <Pressable
           onPress={() => {}}
           className="p-6 bg-white rounded-t-3xl border-t border-slate-200"
@@ -254,12 +267,14 @@ function PassengerSettings({
           </View>
 
           {isManifesto && (
-            <View className="mt-4">
-              <View className="flex-row justify-between items-center p-4 bg-slate-50 rounded-2xl mb-3">
+            <ScrollView
+              className="mt-4"
+              style={{ maxHeight: 420 }}
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="flex-row justify-between items-center p-4 bg-slate-50 rounded-2xl mb-4">
                 <View className="flex-1 pr-3">
-                  <Text className="font-bold text-slate-900">
-                    Active Theme
-                  </Text>
+                  <Text className="font-bold text-slate-900">Active Theme</Text>
                   <Text className="text-xs text-slate-500">
                     {activeTheme?.name ?? "No theme yet"}
                   </Text>
@@ -272,41 +287,51 @@ function PassengerSettings({
                 </TouchableOpacity>
               </View>
 
-              <Text className="text-xs text-slate-500 mb-2 uppercase tracking-wider">
-                Pick a vibe
-              </Text>
-              <View className="flex-row flex-wrap -mx-1">
-                {MANIFESTO_THEMES.map((theme) => {
-                  const selected = activeTheme?.id === theme.id;
-                  return (
-                    <TouchableOpacity
-                      key={theme.id}
-                      onPress={() => onPickTheme(theme)}
-                      className={`m-1 px-3 py-2 rounded-full border ${
-                        selected
-                          ? "border-transparent"
-                          : "border-slate-200 bg-white"
-                      }`}
-                      style={
-                        selected
-                          ? { backgroundColor: theme.accent }
-                          : undefined
-                      }
-                    >
-                      <Text
-                        className={selected ? "text-white" : "text-slate-700"}
-                      >
-                        {theme.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+              {THEME_GROUPS.map((group) => (
+                <View key={group.id} className="mb-4">
+                  <Text className="text-xs text-slate-500 mb-2 uppercase tracking-wider">
+                    {group.label}
+                  </Text>
+                  <View className="flex-row flex-wrap -mx-1">
+                    {group.themes.map((theme) => {
+                      const selected = activeTheme?.id === theme.id;
+                      return (
+                        <TouchableOpacity
+                          key={theme.id}
+                          onPress={() => onPickTheme(theme)}
+                          className={`m-1 px-3 py-2 rounded-full border flex-row items-center ${
+                            selected
+                              ? "border-transparent"
+                              : "border-slate-200 bg-white"
+                          }`}
+                          style={
+                            selected
+                              ? { backgroundColor: theme.accent }
+                              : undefined
+                          }
+                        >
+                          <View
+                            className="w-3 h-3 rounded-full mr-2"
+                            style={{ backgroundColor: theme.posterColor }}
+                          />
+                          <Text
+                            className={
+                              selected ? "text-white" : "text-slate-700"
+                            }
+                          >
+                            {theme.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
 
-              <Text className="text-center text-xs text-slate-400 mt-4 italic">
+              <Text className="text-center text-xs text-slate-400 mt-2 mb-2 italic">
                 "Shake the phone to cycle through themes"
               </Text>
-            </View>
+            </ScrollView>
           )}
         </Pressable>
       </Pressable>

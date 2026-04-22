@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import { resolveThemeAppearance } from "../themes/manifestoThemes";
 
 export default function DriverHome({
   name,
@@ -9,23 +10,39 @@ export default function DriverHome({
   activeTheme,
 }) {
   const isManifesto = vibeMode === "manifesto";
-  const accent = isManifesto && activeTheme ? activeTheme.accent : "#3b82f6";
 
-  const baseBg = isManifesto ? "bg-black" : "bg-white";
-  const titleColor = isManifesto ? "text-white" : "text-slate-900";
-  const mutedColor = isManifesto ? "text-slate-300" : "text-slate-500";
-  const cardBg = isManifesto
+  const appearance = useMemo(
+    () => (isManifesto ? resolveThemeAppearance(activeTheme) : null),
+    [isManifesto, activeTheme]
+  );
+
+  const isDarkBase = isManifesto && appearance?.base === "dark";
+  const accent =
+    isManifesto && appearance?.accent ? appearance.accent : "#3b82f6";
+  const posterColor = isManifesto ? appearance?.posterColor : null;
+
+  const baseBg = isDarkBase ? "bg-black" : "bg-white";
+  const titleColor = isDarkBase ? "text-white" : "text-slate-900";
+  const mutedColor = isDarkBase ? "text-slate-300" : "text-slate-500";
+  const cardBg = isDarkBase
     ? "bg-white/5 border border-white/10"
     : "bg-slate-50 border border-slate-200";
-  const cardLabel = isManifesto ? "text-slate-400" : "text-slate-500";
-  const cardValue = isManifesto ? "text-white" : "text-slate-900";
+  const cardLabel = isDarkBase ? "text-slate-400" : "text-slate-500";
+  const cardValue = isDarkBase ? "text-white" : "text-slate-900";
+  const posterOpacity = isDarkBase ? 0.35 : 0.25;
 
   return (
     <View className={`flex-1 ${baseBg}`}>
+      {isManifesto && posterColor && (
+        <View
+          className="absolute inset-0"
+          style={{ backgroundColor: posterColor, opacity: posterOpacity }}
+        />
+      )}
       {isManifesto && activeTheme?.poster && (
         <Image
           source={activeTheme.poster}
-          className="absolute inset-0 w-full h-full opacity-15"
+          className="absolute inset-0 w-full h-full opacity-20"
           style={{ tintColor: "gray" }}
           resizeMode="cover"
         />
@@ -37,13 +54,17 @@ export default function DriverHome({
             className="text-sm font-semibold uppercase tracking-widest"
             style={{ color: accent }}
           >
-            Driver Dashboard
+            {isManifesto && activeTheme
+              ? `Manifesto · ${activeTheme.name}`
+              : "Driver Dashboard"}
           </Text>
           <Text className={`${titleColor} text-4xl font-black mt-2`}>
             Hey, {name}
           </Text>
           <Text className={`${mutedColor} mt-1`}>
-            You're behind the wheel. Drive safe.
+            {isManifesto && activeTheme
+              ? activeTheme.tagline
+              : "You're behind the wheel. Drive safe."}
           </Text>
         </View>
 
