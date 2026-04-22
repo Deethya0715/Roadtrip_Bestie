@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import "./global.css";
-import { getSession, claimSeat } from "./src/api/session";
+import { getSession, claimSeat, leaveSeat } from "./src/api/session";
+import DriverHome from "./src/screens/DriverHome";
+import PassengerHome from "./src/screens/PassengerHome";
 
 const POLL_INTERVAL_MS = 3000;
 
@@ -131,10 +133,20 @@ export default function App() {
     );
   }
 
-  return (
-    <View className="flex-1 bg-black items-center justify-center">
-      <Text className="text-white text-2xl">Welcome, {name}!</Text>
-      <Text className="text-slate-500">Role: {role}</Text>
-    </View>
-  );
+  const handleLeave = async () => {
+    try {
+      await leaveSeat(role);
+    } catch (err) {
+      console.warn("leaveSeat failed:", err.message);
+    }
+    setIsConfirmed(false);
+    setRole(null);
+    setName("");
+  };
+
+  if (role === "driver") {
+    return <DriverHome name={name} session={session} onLeave={handleLeave} />;
+  }
+
+  return <PassengerHome name={name} session={session} onLeave={handleLeave} />;
 }
