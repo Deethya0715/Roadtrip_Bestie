@@ -14,8 +14,10 @@ import {
 import {
   DEFAULT_SETTINGS,
   loadContacts,
+  loadNextVibeAt,
   loadSettings,
   saveContacts,
+  saveNextVibeAt,
   saveSettings,
 } from "./storage";
 
@@ -102,18 +104,60 @@ export function useSafeCheckIn({ role, name, session }) {
   }, [isPassenger]);
 
   // ─── Passenger: 30-minute Vibe Check nudge ───────────────────────────
+  // The target timestamp is persisted to AsyncStorage so the cadence
+  // survives backgrounding, cold starts, and force-quits. The timer
+  // never stops or restarts — it only rolls forward by one interval
+  // each time the target is reached (catching up missed intervals in a
+  // single pop if the app was closed past one or more targets).
+  const automationEnabledRef = useRef(automationEnabled);
+  automationEnabledRef.current = automationEnabled;
+
   useEffect(() => {
-    if (!isPassenger || !automationEnabled) {
-      setNextVibeAt(null);
-      return;
-    }
-    const next = Date.now() + VIBE_CHECK_INTERVAL_MS;
-    setNextVibeAt(next);
-    const t = setTimeout(() => setVibeModalOpen(true), VIBE_CHECK_INTERVAL_MS);
-    return () => clearTimeout(t);
-    // Reset the timer after a check-in is posted (the list grows) or
-    // after the user toggles the automation switch.
-  }, [isPassenger, automationEnabled, entries.length]);
+    if (!isPassenger) return;
+
+    let cancelled = false;
+    let timeoutId = null;
+
+    const runTick = async () => {
+      if (cancelled) return;
+      const now = Date.now();
+      let target = await loadNextVibeAt();
+
+      if (target == null) {
+        target = now + VIBE_CHECK_INTERVAL_MS;
+        await saveNextVibeAt(target);
+      } else if (target <= now) {
+        const missed =
+          Math.floor((now - target) / VIBE_CHECK_INTERVAL_MS) + 1;
+        target = target + missed * VIBE_CHECK_INTERVAL_MS;
+        await saveNextVibeAt(target);
+        if (automationEnabledRef.current) {
+          setVibeModalOpen(true);
+        }
+      }
+
+      if (cancelled) return;
+      setNextVibeAt(target);
+
+      const delay = Math.max(0, target - Date.now());
+      timeoutId = setTimeout(runTick, delay);
+    };
+
+    runTick();
+
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        if (timeoutId) clearTimeout(timeoutId);
+        runTick();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      sub.remove();
+    };
+  }, [isPassenger]);
 
   // ─── Driver: location watcher + arrival / departure detection ────────
   useEffect(() => {

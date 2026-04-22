@@ -5,8 +5,11 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
-  Pressable,
 } from "react-native";
+import Ghost from "./games/Ghost";
+import IntricateLie from "./games/IntricateLie";
+import VirtualHideAndSeek from "./games/VirtualHideAndSeek";
+import LicensePlateMap from "./games/LicensePlateMap";
 
 const WOULD_YOU_RATHER = [
   "Would you rather pull over for the best diner of your life, or push through to arrive 3 hours early?",
@@ -91,11 +94,11 @@ function pickRandom(list, exclude) {
   return next;
 }
 
-export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
-  const [activeGame, setActiveGame] = useState(null);
-
-  const games = useMemo(
-    () => [
+const GAME_SECTIONS = [
+  {
+    title: "Quick Picks",
+    subtitle: "Tap, play, pass the phone.",
+    games: [
       {
         id: "wyr",
         title: "Would You Rather",
@@ -116,14 +119,40 @@ export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
         title: "Truth or Dare",
         blurb: "Mile-marker edition.",
       },
+    ],
+  },
+  {
+    title: "Interactive Vocal Games",
+    subtitle: "Eyes on the road. Brains engaged.",
+    games: [
+      {
+        id: "ghost",
+        title: "Ghost",
+        blurb: "Word-chain battle with a built-in dictionary referee.",
+      },
+      {
+        id: "lie",
+        title: "The Intricate Lie",
+        blurb: "Bluffing game — the passenger tracks the points.",
+      },
+      {
+        id: "hideseek",
+        title: "Virtual Hide & Seek",
+        blurb: "Hide in a \"room\", answer yes/no questions to be found.",
+      },
       {
         id: "plate",
         title: "License Plate Game",
-        blurb: "Track states you've spotted.",
+        blurb: "Interactive SVG map — log every state you spot.",
       },
     ],
-    []
-  );
+  },
+];
+
+export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
+  const [activeGame, setActiveGame] = useState(null);
+
+  const sections = useMemo(() => GAME_SECTIONS, []);
 
   return (
     <Modal
@@ -155,17 +184,31 @@ export default function GamesScreen({ visible, onClose, accent = "#a855f7" }) {
 
         {!activeGame ? (
           <ScrollView className="flex-1 px-6 pt-5">
-            {games.map((g) => (
-              <TouchableOpacity
-                key={g.id}
-                onPress={() => setActiveGame(g.id)}
-                className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-3"
-              >
-                <Text className="text-slate-900 font-bold text-lg">
-                  {g.title}
+            {sections.map((section) => (
+              <View key={section.title} className="mb-2">
+                <Text className="text-xs uppercase tracking-widest text-slate-500 mt-3">
+                  {section.title}
                 </Text>
-                <Text className="text-slate-500 text-sm mt-1">{g.blurb}</Text>
-              </TouchableOpacity>
+                {section.subtitle && (
+                  <Text className="text-slate-400 text-xs mb-3">
+                    {section.subtitle}
+                  </Text>
+                )}
+                {section.games.map((g) => (
+                  <TouchableOpacity
+                    key={g.id}
+                    onPress={() => setActiveGame(g.id)}
+                    className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-3"
+                  >
+                    <Text className="text-slate-900 font-bold text-lg">
+                      {g.title}
+                    </Text>
+                    <Text className="text-slate-500 text-sm mt-1">
+                      {g.blurb}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             ))}
             <View className="h-10" />
           </ScrollView>
@@ -195,7 +238,10 @@ function GameRunner({ gameId, accent, onBack }) {
         {gameId === "trivia" && <Trivia accent={accent} />}
         {gameId === "ispy" && <ISpy accent={accent} />}
         {gameId === "td" && <TruthOrDare accent={accent} />}
-        {gameId === "plate" && <LicensePlateGame accent={accent} />}
+        {gameId === "ghost" && <Ghost accent={accent} />}
+        {gameId === "lie" && <IntricateLie accent={accent} />}
+        {gameId === "hideseek" && <VirtualHideAndSeek accent={accent} />}
+        {gameId === "plate" && <LicensePlateMap accent={accent} />}
       </View>
     </View>
   );
@@ -320,69 +366,6 @@ function TruthOrDare({ accent }) {
       >
         <Text className="text-white text-center font-bold">Next card</Text>
       </TouchableOpacity>
-    </View>
-  );
-}
-
-const US_STATES = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
-  "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
-  "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
-  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
-];
-
-function LicensePlateGame({ accent }) {
-  const [spotted, setSpotted] = useState({});
-  const count = Object.values(spotted).filter(Boolean).length;
-
-  const toggle = (state) =>
-    setSpotted((prev) => ({ ...prev, [state]: !prev[state] }));
-
-  return (
-    <View className="flex-1 pt-4">
-      <View className="flex-row items-end justify-between mb-3">
-        <View>
-          <Text className="text-xs uppercase tracking-widest text-slate-500">
-            License Plate Game
-          </Text>
-          <Text className="text-slate-900 text-2xl font-black mt-1">
-            {count} / 50 states
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => setSpotted({})}
-          className="px-3 py-2 rounded-full bg-slate-100"
-        >
-          <Text className="text-slate-600 text-xs font-semibold">Reset</Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-        <View className="flex-row flex-wrap -mx-1 pb-10">
-          {US_STATES.map((s) => {
-            const on = !!spotted[s];
-            return (
-              <TouchableOpacity
-                key={s}
-                onPress={() => toggle(s)}
-                className="m-1 rounded-xl px-3 py-2 border"
-                style={{
-                  backgroundColor: on ? accent : "#f8fafc",
-                  borderColor: on ? accent : "#e2e8f0",
-                  minWidth: 56,
-                }}
-              >
-                <Text
-                  className="text-center font-bold"
-                  style={{ color: on ? "#fff" : "#0f172a" }}
-                >
-                  {s}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </ScrollView>
     </View>
   );
 }

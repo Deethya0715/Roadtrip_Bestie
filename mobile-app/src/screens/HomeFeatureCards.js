@@ -30,7 +30,7 @@ export default function HomeFeatureCards({
       id: "games",
       emoji: "🎮",
       title: "Games",
-      blurb: "Trivia, I Spy, Would You Rather & more.",
+      blurb: "Ghost, Hide & Seek, License Plate Map & more.",
     },
     {
       id: "amenities",
