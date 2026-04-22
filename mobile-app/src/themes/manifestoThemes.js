@@ -29,7 +29,7 @@ export const MANIFESTO_THEMES = [
     name: "Legally Blonde",
     category: "light",
     posterColor: "#f9a8d4", // Pastel Pink
-    accent: "#f8fafc", // Soft White
+    accent: "#db2777", // Elle's Hot Pink (legible, unmistakably her)
     tagline: "What, like it's hard?",
     poster: null,
   },
@@ -52,23 +52,23 @@ export const MANIFESTO_THEMES = [
     poster: null,
   },
   {
-    id: "devil-wears-prada",
-    name: "The Devil Wears Prada",
+    id: "la-la-land-sunset",
+    name: "La La Land · Sunset",
     category: "light",
-    posterColor: "#9ca3af", // Stark Grey
-    accent: "#0ea5e9", // Cerulean Blue
-    tagline: "Florals? For spring? Groundbreaking.",
+    posterColor: "#fecaca", // Pastel Peach
+    accent: "#c4b5fd", // Pastel Lavender
+    tagline: "Here's to the ones who dream.",
     poster: null,
   },
 
   // ─── Dark Mode Themes (Overnight Driving) ───────────────────────────────
   {
-    id: "harry-potter-slytherin",
-    name: "Harry Potter · Slytherin",
+    id: "harry-potter-hufflepuff",
+    name: "Harry Potter · Hufflepuff",
     category: "dark",
-    posterColor: "#064e3b", // Deep Emerald
-    accent: "#22c55e", // Venom Green
-    tagline: "Cunning folk use any means…",
+    posterColor: "#18181b", // Hufflepuff Black
+    accent: "#facc15", // Hufflepuff Yellow
+    tagline: "True and unafraid of toil.",
     poster: null,
   },
   {
@@ -85,8 +85,8 @@ export const MANIFESTO_THEMES = [
     name: "The Adam Project",
     category: "dark",
     posterColor: "#172554", // Midnight Navy
-    accent: "#f8fafc", // Starfield White
-    tagline: "Future me, past me, road me.",
+    accent: "#22d3ee", // Electric Cyan (lightning through time)
+    tagline: "Lightning crackling between decades.",
     poster: null,
   },
   {
@@ -99,26 +99,16 @@ export const MANIFESTO_THEMES = [
     poster: null,
   },
   {
-    id: "la-la-land-sunset",
-    name: "La La Land · Sunset",
+    id: "devil-wears-prada",
+    name: "The Devil Wears Prada",
     category: "dark",
-    posterColor: "#f97316", // Peach / Coral
-    accent: "#8b5cf6", // Twilight Purple
-    tagline: "Here's to the ones who dream.",
+    posterColor: "#0a0a0a", // Runway Black
+    accent: "#dc2626", // Signature Red
+    tagline: "Florals? For spring? Groundbreaking.",
     poster: null,
   },
 
   // ─── Interchangeable Themes (Adaptive Logic) ────────────────────────────
-  {
-    id: "spongebob",
-    name: "SpongeBob SquarePants",
-    category: "adaptive",
-    posterColor: "#fde68a", // Sandy Yellow (day)
-    posterColorDark: "#1e3a8a", // Deep Sea Blue (night)
-    accent: "#ef4444", // SpongeBob tie red
-    tagline: "I'm ready! I'm ready! I'm ready!",
-    poster: null,
-  },
   {
     id: "ratatouille",
     name: "Ratatouille",
@@ -160,6 +150,21 @@ export const MANIFESTO_THEMES = [
     poster: null,
   },
 ];
+
+// Quick perceived-luminance check: returns '#0f172a' (slate-900) for light
+// colors and '#ffffff' for dark ones. Use for any text painted on top of a
+// theme-supplied color (CTA tiles, selected pills, etc.) so we don't end up
+// with white-on-pastel or black-on-navy.
+export const textOnColor = (hex) => {
+  if (!hex || typeof hex !== "string") return "#ffffff";
+  const c = hex.replace("#", "");
+  if (c.length !== 6) return "#ffffff";
+  const r = parseInt(c.slice(0, 2), 16);
+  const g = parseInt(c.slice(2, 4), 16);
+  const b = parseInt(c.slice(4, 6), 16);
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.6 ? "#0f172a" : "#ffffff";
+};
 
 // Lookup: how does a theme actually *look* right now?
 // Used by screens to decide whether the base surface should be light or dark,

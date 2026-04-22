@@ -13,6 +13,7 @@ import {
   THEME_GROUPS,
   getNextTheme,
   resolveThemeAppearance,
+  textOnColor,
 } from "../themes/manifestoThemes";
 
 export default function PassengerHome({
@@ -36,6 +37,7 @@ export default function PassengerHome({
 
   const isDarkBase = isManifesto && appearance?.base === "dark";
   const accent = isManifesto && appearance?.accent ? appearance.accent : "#a855f7";
+  const accentTextColor = textOnColor(accent);
   const posterColor = isManifesto ? appearance?.posterColor : null;
 
   const toggleVibe = () => {
@@ -53,11 +55,11 @@ export default function PassengerHome({
   const titleColor = isDarkBase ? "text-white" : "text-slate-900";
   const mutedColor = isDarkBase ? "text-slate-300" : "text-slate-500";
   const cardBg = isDarkBase
-    ? "bg-white/5 border border-white/10"
+    ? "bg-white/10 border border-white/15"
     : "bg-slate-50 border border-slate-200";
-  const cardLabel = isDarkBase ? "text-slate-400" : "text-slate-500";
+  const cardLabel = isDarkBase ? "text-slate-300" : "text-slate-500";
   const cardValue = isDarkBase ? "text-white" : "text-slate-900";
-  const posterOpacity = isDarkBase ? 0.35 : 0.25;
+  const posterOpacity = isDarkBase ? 0.28 : 0.2;
 
   return (
     <View className={`flex-1 ${baseBg}`}>
@@ -79,15 +81,22 @@ export default function PassengerHome({
       <ScrollView className="flex-1">
         <View className="px-6 pt-16 pb-8 flex-row items-start justify-between">
           <View className="flex-1 pr-4">
-            <Text
-              className="text-sm font-semibold uppercase tracking-widest"
-              style={{ color: accent }}
-            >
-              {isManifesto && activeTheme
-                ? `Manifesto · ${activeTheme.name}`
-                : "Passenger Dashboard"}
-            </Text>
-            <Text className={`${titleColor} text-4xl font-black mt-2`}>
+            <View className="flex-row items-center mb-2">
+              {isManifesto && (
+                <View
+                  className="w-2.5 h-2.5 rounded-full mr-2"
+                  style={{ backgroundColor: accent }}
+                />
+              )}
+              <Text
+                className={`${titleColor} text-sm font-semibold uppercase tracking-widest`}
+              >
+                {isManifesto && activeTheme
+                  ? `Manifesto · ${activeTheme.name}`
+                  : "Passenger Dashboard"}
+              </Text>
+            </View>
+            <Text className={`${titleColor} text-4xl font-black`}>
               {isManifesto && activeTheme
                 ? activeTheme.name
                 : `Welcome, ${name}`}
@@ -133,8 +142,10 @@ export default function PassengerHome({
                 Status
               </Text>
               <Text
-                className="text-lg font-semibold"
-                style={{ color: isManifesto ? accent : "#16a34a" }}
+                className={`${
+                  isManifesto ? "" : "text-green-600"
+                } text-lg font-semibold`}
+                style={isManifesto ? { color: accent } : undefined}
               >
                 Cruising
               </Text>
@@ -159,8 +170,22 @@ export default function PassengerHome({
             className="rounded-2xl p-5 mb-3"
             style={{ backgroundColor: isManifesto ? accent : "#a855f7" }}
           >
-            <Text className="text-white font-bold text-base">Play Games</Text>
-            <Text className="text-white/80 text-xs mt-1">
+            <Text
+              className="font-bold text-base"
+              style={{ color: isManifesto ? accentTextColor : "#ffffff" }}
+            >
+              Play Games
+            </Text>
+            <Text
+              className="text-xs mt-1"
+              style={{
+                color: isManifesto
+                  ? accentTextColor === "#ffffff"
+                    ? "rgba(255,255,255,0.8)"
+                    : "rgba(15,23,42,0.7)"
+                  : "rgba(255,255,255,0.8)",
+              }}
+            >
               Word games, trivia & more
             </Text>
           </TouchableOpacity>
@@ -295,6 +320,7 @@ function PassengerSettings({
                   <View className="flex-row flex-wrap -mx-1">
                     {group.themes.map((theme) => {
                       const selected = activeTheme?.id === theme.id;
+                      const selectedTextColor = textOnColor(theme.accent);
                       return (
                         <TouchableOpacity
                           key={theme.id}
@@ -315,8 +341,11 @@ function PassengerSettings({
                             style={{ backgroundColor: theme.posterColor }}
                           />
                           <Text
-                            className={
-                              selected ? "text-white" : "text-slate-700"
+                            className={selected ? "" : "text-slate-700"}
+                            style={
+                              selected
+                                ? { color: selectedTextColor }
+                                : undefined
                             }
                           >
                             {theme.name}
