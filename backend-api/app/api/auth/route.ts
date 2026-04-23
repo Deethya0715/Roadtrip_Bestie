@@ -5,11 +5,14 @@ import { smartcarClient } from "@/app/lib/smartcar";
  * Step 1 of the handshake.
  *
  * GET /api/auth
- *   -> 302 redirect to Ford / Smartcar login
+ *   -> 302 redirect to Smartcar Connect (OAuth authorize URL).
  *
- * After the user logs in, Smartcar bounces them back to
- * SMARTCAR_REDIRECT_URI (which should point at /api/auth/callback)
- * with a `?code=...` query param.
+ * After the user authorizes, Smartcar redirects to SMARTCAR_REDIRECT_URI
+ * (e.g. /api/auth/callback) with `?code=...`.
+ *
+ * Scopes: any list passed to getAuthUrl overrides the Smartcar Dashboard
+ * "Vehicle Access" defaults (see "Build the Connect URL" in Smartcar docs).
+ * You can also use "Share Connect Link" in the dashboard to compare URLs.
  */
 export async function GET() {
   const scope = [

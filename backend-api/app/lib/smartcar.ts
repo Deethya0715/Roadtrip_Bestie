@@ -10,6 +10,11 @@ import smartcar from "smartcar";
  *   SMARTCAR_CLIENT_SECRET
  *   SMARTCAR_REDIRECT_URI   e.g. http://localhost:3000/api/auth/callback
  *   SMARTCAR_MODE           "test" while developing, "live" in the Mach-E
+ *
+ * Use the Smartcar dashboard "Legacy Keys" for these — not the M2M "New"
+ * client ID/secret. This SDK uses Connect (OAuth code flow) for vehicle-
+ * scoped tokens; M2M credentials are for a different API and will not work
+ * at connect.smartcar.com/oauth/authorize.
  */
 export const smartcarClient = new smartcar.AuthClient({
   clientId: process.env.SMARTCAR_CLIENT_ID!,
