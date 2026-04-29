@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  Keyboard,
+} from "react-native";
 import "./global.css";
 import { getSession, claimSeat, leaveSeat } from "./src/api/session";
 import {
@@ -225,6 +233,9 @@ export default function App() {
               className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-4"
               onChangeText={setName}
               value={name}
+              returnKeyType="done"
+              blurOnSubmit
+              onSubmitEditing={() => Keyboard.dismiss()}
             />
             <TouchableOpacity
               onPress={joinTrip}

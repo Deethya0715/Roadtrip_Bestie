@@ -9,6 +9,7 @@ import {
   Modal,
   Image,
   Pressable,
+  Keyboard,
 } from "react-native";
 import {
   MANIFESTO_THEMES,
@@ -276,7 +277,11 @@ function PassengerSettings({
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+          >
           <Text className="text-slate-500 text-xs uppercase tracking-wider mb-2 mt-1">
             Safe Check-In
           </Text>
@@ -314,6 +319,9 @@ function PassengerSettings({
                 value={newContact}
                 onChangeText={setNewContact}
                 onSubmitEditing={addContact}
+                returnKeyType="done"
+                blurOnSubmit
+                onBlur={() => Keyboard.dismiss()}
                 placeholder="Add a name"
                 placeholderTextColor="#94a3b8"
                 className="flex-1 bg-white border border-slate-200 text-slate-900 p-3 rounded-xl mr-2"

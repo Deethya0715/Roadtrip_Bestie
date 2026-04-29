@@ -8,6 +8,7 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  Keyboard,
 } from "react-native";
 import { getThemeSurfaces } from "../../themes/manifestoThemes";
 
@@ -167,7 +168,11 @@ export default function Ghost({ accent = "#a855f7", surfaces: injected }) {
 
   if (editingNames) {
     return (
-      <ScrollView className="flex-1 pt-6">
+      <ScrollView
+        className="flex-1 pt-6"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <Text
           className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
         >
@@ -194,6 +199,9 @@ export default function Ghost({ accent = "#a855f7", surfaces: injected }) {
           onChangeText={setP1Name}
           placeholder="Driver"
           placeholderTextColor={surfaces.placeholderColor}
+          returnKeyType="done"
+          blurOnSubmit
+          onSubmitEditing={() => Keyboard.dismiss()}
           className={`p-4 rounded-xl mb-4 ${surfaces.inputBg}`}
         />
         <Text
@@ -206,6 +214,9 @@ export default function Ghost({ accent = "#a855f7", surfaces: injected }) {
           onChangeText={setP2Name}
           placeholder="Passenger"
           placeholderTextColor={surfaces.placeholderColor}
+          returnKeyType="done"
+          blurOnSubmit
+          onSubmitEditing={() => Keyboard.dismiss()}
           className={`p-4 rounded-xl mb-6 ${surfaces.inputBg}`}
         />
 
@@ -386,6 +397,9 @@ export default function Ghost({ accent = "#a855f7", surfaces: injected }) {
               onChangeText={setChallengeWord}
               autoCapitalize="none"
               autoCorrect={false}
+              returnKeyType="done"
+              blurOnSubmit
+              onSubmitEditing={submitChallenge}
               placeholder={fragment + "…"}
               placeholderTextColor="#94a3b8"
               className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-4"

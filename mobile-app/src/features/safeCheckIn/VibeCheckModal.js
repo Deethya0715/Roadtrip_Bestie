@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Keyboard,
 } from "react-native";
 import { MOOD_OPTIONS } from "./constants";
 
@@ -99,6 +100,9 @@ export default function VibeCheckModal({
             onChangeText={setBattery}
             placeholder="e.g. 72"
             placeholderTextColor="#94a3b8"
+            returnKeyType="done"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
             className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-3"
           />
 
@@ -110,6 +114,9 @@ export default function VibeCheckModal({
             onChangeText={setDriver}
             placeholder="Who's behind the wheel?"
             placeholderTextColor="#94a3b8"
+            returnKeyType="done"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
             className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-3"
           />
 
@@ -149,6 +156,9 @@ export default function VibeCheckModal({
             onChangeText={setNote}
             placeholder="Stopping in Barstow for snacks"
             placeholderTextColor="#94a3b8"
+            returnKeyType="done"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
             className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-4"
           />
 

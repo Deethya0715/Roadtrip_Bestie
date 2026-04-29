@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
   KeyboardAvoidingView,
+  Keyboard,
 } from "react-native";
 import {
   loadTripPlan,
@@ -177,6 +178,9 @@ export default function RoadtripPlannerScreen({
             placeholderTextColor={surfaces.placeholderColor}
             value={plan.origin}
             onChangeText={(v) => setPlan((p) => ({ ...p, origin: v }))}
+            returnKeyType="done"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
             className={`rounded-xl p-4 mb-5 ${surfaces.inputBg}`}
           />
 
@@ -190,6 +194,9 @@ export default function RoadtripPlannerScreen({
             placeholderTextColor={surfaces.placeholderColor}
             value={plan.destination}
             onChangeText={(v) => setPlan((p) => ({ ...p, destination: v }))}
+            returnKeyType="done"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
             className={`rounded-xl p-4 mb-6 ${surfaces.inputBg}`}
           />
 
@@ -207,6 +214,8 @@ export default function RoadtripPlannerScreen({
               onChangeText={setStopDraft}
               onSubmitEditing={addStop}
               returnKeyType="done"
+              blurOnSubmit
+              onBlur={() => Keyboard.dismiss()}
               className={`flex-1 rounded-xl p-4 mr-2 ${surfaces.inputBg}`}
             />
             <TouchableOpacity

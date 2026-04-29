@@ -1,5 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, TouchableOpacity, ScrollView, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Keyboard,
+} from "react-native";
 import { getThemeSurfaces } from "../../themes/manifestoThemes";
 
 const ROOMS = [
@@ -115,7 +122,11 @@ export default function VirtualHideAndSeek({
 
   if (editing) {
     return (
-      <ScrollView className="flex-1 pt-6">
+      <ScrollView
+        className="flex-1 pt-6"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <Text
           className={`text-xs uppercase tracking-widest mb-2 ${surfaces.subtleText}`}
         >
@@ -141,6 +152,9 @@ export default function VirtualHideAndSeek({
           onChangeText={setHiderName}
           placeholder="Driver"
           placeholderTextColor={surfaces.placeholderColor}
+          returnKeyType="done"
+          blurOnSubmit
+          onSubmitEditing={() => Keyboard.dismiss()}
           className={`p-4 rounded-xl mb-4 ${surfaces.inputBg}`}
         />
         <Text
@@ -153,6 +167,9 @@ export default function VirtualHideAndSeek({
           onChangeText={setSeekerName}
           placeholder="Passenger"
           placeholderTextColor={surfaces.placeholderColor}
+          returnKeyType="done"
+          blurOnSubmit
+          onSubmitEditing={() => Keyboard.dismiss()}
           className={`p-4 rounded-xl mb-6 ${surfaces.inputBg}`}
         />
         <TouchableOpacity
@@ -228,6 +245,9 @@ export default function VirtualHideAndSeek({
             onChangeText={setCustomRoom}
             placeholder="Inside the cassette deck…"
             placeholderTextColor={surfaces.placeholderColor}
+            returnKeyType="done"
+            blurOnSubmit
+            onSubmitEditing={useCustom}
             className={`p-4 rounded-xl mb-3 ${surfaces.inputBg}`}
           />
           <TouchableOpacity

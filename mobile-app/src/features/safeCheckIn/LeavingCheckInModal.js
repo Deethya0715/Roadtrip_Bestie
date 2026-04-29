@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Keyboard,
 } from "react-native";
 
 /**
@@ -130,6 +131,9 @@ export default function LeavingCheckInModal({
             onChangeText={setNewDriver}
             placeholder="Who's taking the wheel?"
             placeholderTextColor="#94a3b8"
+            returnKeyType="done"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
             className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-3"
           />
 
@@ -141,6 +145,9 @@ export default function LeavingCheckInModal({
             onChangeText={setNotes}
             placeholder="ETA Vegas 11pm"
             placeholderTextColor="#94a3b8"
+            returnKeyType="done"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
             className="bg-slate-50 border border-slate-200 text-slate-900 p-4 rounded-xl mb-4"
           />
 
