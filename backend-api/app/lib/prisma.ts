@@ -1,5 +1,6 @@
 import { PrismaClient } from "@/app/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { supabasePoolerCompatUrl } from "../../prisma/poolerCompat";
 
 /**
  * Prisma 7 requires a driver adapter — the ORM no longer bundles a Rust
@@ -9,18 +10,10 @@ import { PrismaPg } from "@prisma/adapter-pg";
  * create a new PrismaClient on every edit and exhaust the Postgres
  * connection pool, so we cache the instance on globalThis.
  */
-const globalForPrisma = globalThis as unknown as {
-  prisma?: PrismaClient;
-};
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error(
-      "DATABASE_URL is not set. Fill it in backend-api/.env with your Supabase connection string."
-    );
-  }
-
+  const connectionString = supabasePoolerCompatUrl(process.env.DATABASE_URL);
   const adapter = new PrismaPg({ connectionString });
   return new PrismaClient({
     adapter,
@@ -28,6 +21,7 @@ function createPrismaClient() {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+export const prisma =
+  process.env.NODE_ENV === "production"
+    ? globalForPrisma.prisma ?? (globalForPrisma.prisma = createPrismaClient())
+    : createPrismaClient();

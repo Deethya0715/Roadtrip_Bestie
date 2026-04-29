@@ -13,7 +13,7 @@
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
     "babel-preset-expo": "~54.0.10",
-    "expo": "~54.0.33",
+    "expo": "~54.0.34",
     "expo-clipboard": "~8.0.8",
     "expo-location": "~19.0.8",
     "expo-sensors": "~15.0.8",
