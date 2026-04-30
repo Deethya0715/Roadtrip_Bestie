@@ -128,7 +128,7 @@ export default function DriverHome({
         <View className="px-6 pt-16 pb-8 flex-row items-start justify-between">
           <View className="flex-1 pr-4">
             <View className="flex-row items-center mb-2">
-              {(isManifesto || driverDarkMode) && (
+              {isManifesto && (
                 <View
                   className="w-2.5 h-2.5 rounded-full mr-2"
                   style={{ backgroundColor: accent }}
@@ -139,8 +139,6 @@ export default function DriverHome({
               >
                 {isManifesto && activeTheme
                   ? `Manifesto · ${activeTheme.name}`
-                  : driverDarkMode
-                  ? "Driver · Dark"
                   : "Driver Dashboard"}
               </Text>
             </View>
@@ -376,14 +374,14 @@ export default function DriverHome({
                       isDarkBase ? "text-white" : "text-slate-900"
                     }`}
                   >
-                    Dark mode
+                    Night colors
                   </Text>
                   <Text
                     className={`text-xs ${
                       isDarkBase ? "text-slate-400" : "text-slate-500"
                     }`}
                   >
-                    Easier on the eyes for night driving
+                    Easier on the eyes at night
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -398,6 +396,7 @@ export default function DriverHome({
                     driverDarkMode ? "bg-sky-500" : "bg-slate-300"
                   }`}
                   accessibilityRole="switch"
+                  accessibilityLabel="Night colors"
                   accessibilityState={{ checked: driverDarkMode }}
                 >
                   <View
