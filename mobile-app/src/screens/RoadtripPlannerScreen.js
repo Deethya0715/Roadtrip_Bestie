@@ -141,7 +141,7 @@ export default function RoadtripPlannerScreen({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className={`flex-1 ${surfaces.rootBg}`}
       >
-        <ThemedBackdrop surfaces={surfaces} />
+        <ThemedBackdrop surfaces={surfaces} variant="modal" />
 
         <View
           className={`px-6 pt-12 pb-4 flex-row items-center justify-between ${surfaces.headerBorder}`}

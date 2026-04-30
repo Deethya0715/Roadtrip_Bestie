@@ -171,7 +171,7 @@ export default function GamesScreen({
       presentationStyle="pageSheet"
     >
       <View className={`flex-1 ${surfaces.rootBg}`}>
-        <ThemedBackdrop surfaces={surfaces} />
+        <ThemedBackdrop surfaces={surfaces} variant="modal" />
 
         <View
           className={`px-6 pt-12 pb-4 flex-row items-center justify-between ${surfaces.headerBorder}`}

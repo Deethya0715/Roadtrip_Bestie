@@ -8,6 +8,7 @@ import {
   View,
   Keyboard,
 } from "react-native";
+import ThemedBackdrop from "../../themes/ThemedBackdrop";
 import { MOOD_OPTIONS } from "./constants";
 
 /**
@@ -21,6 +22,7 @@ export default function VibeCheckModal({
   onSubmit,
   defaultDriver,
   defaultBattery,
+  surfaces = null,
 }) {
   const [battery, setBattery] = useState(
     defaultBattery != null ? String(defaultBattery) : ""
@@ -66,11 +68,25 @@ export default function VibeCheckModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable onPress={onClose} className="flex-1 bg-black/50 justify-end">
-        <Pressable
-          onPress={() => {}}
-          className="p-6 bg-white rounded-t-3xl border-t border-slate-200"
-        >
+      <View className="flex-1">
+        {surfaces?.isThemed ? (
+          <ThemedBackdrop surfaces={surfaces} variant="modal" />
+        ) : (
+          <View className="absolute inset-0 bg-slate-800" />
+        )}
+        <View className="flex-1 justify-end">
+          <Pressable
+            onPress={onClose}
+            className="absolute inset-0"
+            style={{
+              backgroundColor: surfaces?.isThemed
+                ? "rgba(0,0,0,0.14)"
+                : "rgba(0,0,0,0.5)",
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss vibe check"
+          />
+          <View className="w-full p-6 bg-white rounded-t-3xl border-t border-slate-200">
           <View className="flex-row items-center justify-between mb-2">
             <View>
               <Text className="text-slate-500 text-xs uppercase tracking-widest">
@@ -173,8 +189,9 @@ export default function VibeCheckModal({
               {submitting ? "Sharing..." : "Send Vibe Check"}
             </Text>
           </TouchableOpacity>
-        </Pressable>
-      </Pressable>
+          </View>
+        </View>
+      </View>
     </Modal>
   );
 }

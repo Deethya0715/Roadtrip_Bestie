@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { forwardRef, useImperativeHandle, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import GamesScreen from "./GamesScreen";
 import AmenitiesScreen from "./AmenitiesScreen";
@@ -14,12 +14,15 @@ import RoadtripPlannerScreen from "./RoadtripPlannerScreen";
  * `theme` is forwarded so every downstream screen (and the games inside
  * Games) can render its own poster wash, accent, and dark/light base.
  */
-export default function HomeFeatureCards({
-  accent = "#3b82f6",
-  isDarkBase = false,
-  theme = null,
-}) {
+const HomeFeatureCards = forwardRef(function HomeFeatureCards(
+  { accent = "#3b82f6", isDarkBase = false, theme = null },
+  ref
+) {
   const [open, setOpen] = useState(null); // 'games' | 'amenities' | 'planner' | null
+
+  useImperativeHandle(ref, () => ({
+    openGames: () => setOpen("games"),
+  }));
 
   const titleColor = isDarkBase ? "text-white" : "text-slate-900";
   const subColor = isDarkBase ? "text-slate-300" : "text-slate-500";
@@ -103,4 +106,6 @@ export default function HomeFeatureCards({
       />
     </View>
   );
-}
+});
+
+export default HomeFeatureCards;

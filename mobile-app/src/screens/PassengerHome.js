@@ -1,5 +1,5 @@
 // Passenger dashboard screen.
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -21,11 +21,13 @@ import {
   textOnColor,
 } from "../themes/manifestoThemes";
 import HomeFeatureCards from "./HomeFeatureCards";
+import TripAtAGlance from "../components/TripAtAGlance";
 import { useSafeCheckIn } from "../features/safeCheckIn/useSafeCheckIn";
 import SafeCheckInPanel from "../features/safeCheckIn/SafeCheckInPanel";
 import VibeCheckModal from "../features/safeCheckIn/VibeCheckModal";
 import BlackoutMode from "../features/safeCheckIn/BlackoutMode";
 import RelocationInventorySection from "../features/safeCheckIn/RelocationInventorySection";
+import ThemedBackdrop from "../themes/ThemedBackdrop";
 
 export default function PassengerHome({
   name,
@@ -37,6 +39,7 @@ export default function PassengerHome({
   setActiveTheme,
 }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const featureCardsRef = useRef(null);
   const safe = useSafeCheckIn({ role: "passenger", name, session });
   const isManifesto = vibeMode === "manifesto";
 
@@ -179,6 +182,14 @@ export default function PassengerHome({
             </View>
           </View>
 
+          <TripAtAGlance
+            role="passenger"
+            entries={safe.entries}
+            nextVibeAt={safe.nextVibeAt}
+            onOpenGames={() => featureCardsRef.current?.openGames?.()}
+            isDarkBase={isDarkBase}
+          />
+
           <SafeCheckInPanel
             role="passenger"
             entries={safe.entries}
@@ -190,6 +201,7 @@ export default function PassengerHome({
           />
 
           <HomeFeatureCards
+            ref={featureCardsRef}
             accent={accent}
             isDarkBase={isDarkBase}
             theme={isManifesto ? activeTheme : null}
@@ -211,11 +223,17 @@ export default function PassengerHome({
         onClose={() => safe.setVibeModalOpen(false)}
         onSubmit={safe.postVibe}
         defaultDriver={session?.driverName}
+        surfaces={
+          isManifesto && activeTheme ? getThemeSurfaces(activeTheme) : null
+        }
       />
 
       <PassengerSettings
         visible={settingsOpen}
         onClose={() => setSettingsOpen(false)}
+        surfaces={
+          isManifesto && activeTheme ? getThemeSurfaces(activeTheme) : null
+        }
         vibeMode={vibeMode}
         onToggleVibe={toggleVibe}
         activeTheme={activeTheme}
@@ -238,6 +256,7 @@ export default function PassengerHome({
 function PassengerSettings({
   visible,
   onClose,
+  surfaces = null,
   vibeMode,
   onToggleVibe,
   activeTheme,
@@ -272,17 +291,28 @@ function PassengerSettings({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-end">
-        <Pressable
-          onPress={onClose}
-          className="absolute inset-0 bg-black/40"
-          accessibilityRole="button"
-          accessibilityLabel="Close trip settings"
-        />
-        <View
-          className="w-full bg-white rounded-t-3xl border-t border-slate-200 px-6 pt-6"
-          style={{ maxHeight: sheetMaxH }}
-        >
+      <View className="flex-1">
+        {surfaces?.isThemed ? (
+          <ThemedBackdrop surfaces={surfaces} variant="modal" />
+        ) : (
+          <View className="absolute inset-0 bg-slate-900" />
+        )}
+        <View className="flex-1 justify-end">
+          <Pressable
+            onPress={onClose}
+            className="absolute inset-0"
+            style={{
+              backgroundColor: surfaces?.isThemed
+                ? "rgba(0,0,0,0.14)"
+                : "rgba(0,0,0,0.4)",
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Close trip settings"
+          />
+          <View
+            className="w-full bg-white rounded-t-3xl border-t border-slate-200 px-6 pt-6"
+            style={{ maxHeight: sheetMaxH }}
+          >
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-slate-900 text-xl font-bold">
               Trip Settings
@@ -459,6 +489,7 @@ function PassengerSettings({
             </View>
           )}
           </ScrollView>
+          </View>
         </View>
       </View>
     </Modal>
