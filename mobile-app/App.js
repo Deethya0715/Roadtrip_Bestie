@@ -25,6 +25,23 @@ import DriverHome from "./src/screens/DriverHome";
 import PassengerHome from "./src/screens/PassengerHome";
 
 const POLL_INTERVAL_MS = 3000;
+/** Require this long with a sustained seat mismatch before kicking (avoids flaky polls). */
+const SEAT_LOSS_DEBOUNCE_MS = 4500;
+
+function normalizeSeatNameForMatch(value) {
+  if (value == null) return "";
+  return String(value).trim().toLowerCase();
+}
+
+function isStillInSeat(role, session, localName) {
+  const mine = normalizeSeatNameForMatch(localName);
+  if (mine.length < 2) return false;
+  const server =
+    role === "driver"
+      ? normalizeSeatNameForMatch(session.driverName)
+      : normalizeSeatNameForMatch(session.passengerName);
+  return server.length >= 2 && server === mine;
+}
 
 export default function App() {
   const [role, setRole] = useState(null); // 'driver' or 'passenger'
@@ -37,6 +54,7 @@ export default function App() {
   const [isJoining, setIsJoining] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
   const selfResetInProgress = useRef(false);
+  const seatMismatchSinceRef = useRef(null);
 
   // Global vibe state. Default is the clean white base; the passenger can
   // flip into "manifesto" mode from their settings sheet to get the
@@ -58,14 +76,18 @@ export default function App() {
         if (cancelled) return;
 
         if (stored) {
-          const result = await claimSeat(stored.role, stored.name);
+          const trimmedName = stored.name.trim();
+          const result = await claimSeat(stored.role, trimmedName);
           if (cancelled) return;
 
           if (result.ok) {
             setSession(result.session);
             setRole(stored.role);
-            setName(stored.name);
+            setName(trimmedName);
             setIsConfirmed(true);
+            if (trimmedName !== stored.name) {
+              await saveLocalSession({ role: stored.role, name: trimmedName });
+            }
           } else {
             // Someone else is holding our seat under a different name —
             // fall back to role selection.
@@ -113,12 +135,21 @@ export default function App() {
   useEffect(() => {
     if (!isConfirmed || !role || !name) return;
     if (selfResetInProgress.current) return;
-    const stillInSeat =
-      role === "driver"
-        ? session.driverName === name
-        : session.passengerName === name;
-    if (stillInSeat) return;
+    if (isStillInSeat(role, session, name)) {
+      seatMismatchSinceRef.current = null;
+      return;
+    }
 
+    const now = Date.now();
+    if (seatMismatchSinceRef.current == null) {
+      seatMismatchSinceRef.current = now;
+      return;
+    }
+    if (now - seatMismatchSinceRef.current < SEAT_LOSS_DEBOUNCE_MS) {
+      return;
+    }
+
+    seatMismatchSinceRef.current = null;
     let cancelled = false;
     (async () => {
       await clearLocalSession();
@@ -152,24 +183,39 @@ export default function App() {
   };
 
   const joinTrip = async () => {
-    if (name.length < 2) {
+    const trimmed = name.trim();
+    if (trimmed.length < 2) {
       Alert.alert("Wait!", "Please enter your name first.");
       return;
     }
 
     setIsJoining(true);
-    const result = await claimSeat(role, name);
+    const result = await claimSeat(role, trimmed);
     setIsJoining(false);
 
     if (!result.ok) {
-      Alert.alert("Error", result.error ?? "Could not claim seat.");
       if (result.session) setSession(result.session);
+      const s = result.session;
+      const hint =
+        s &&
+        (role === "driver"
+          ? s.passengerName
+            ? `\n\nPassenger seat: ${s.passengerName} (choose Passenger if that is you).`
+            : ""
+          : s.driverName
+          ? `\n\nDriver seat: ${s.driverName} (choose Driver if that is you).`
+          : "");
+      Alert.alert(
+        "Could not join",
+        `${result.error ?? "Could not claim seat."}${hint}`
+      );
       return;
     }
 
     setSession(result.session);
     setIsConfirmed(true);
-    await saveLocalSession({ role, name });
+    setName(trimmed);
+    await saveLocalSession({ role, name: trimmed });
   };
 
   const handleLeave = async () => {

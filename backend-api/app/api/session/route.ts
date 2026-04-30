@@ -15,6 +15,12 @@ async function getOrCreateSession() {
   });
 }
 
+/** Same person rejoining after reload / new device (ignore case + outer spaces). */
+function seatNamesMatch(stored: string | null, incoming: string): boolean {
+  if (stored == null) return false;
+  return stored.trim().toLowerCase() === incoming.trim().toLowerCase();
+}
+
 /**
  * GET /api/session
  *   -> { driverName, passengerName, activeTheme }
@@ -82,7 +88,7 @@ export async function POST(req: NextRequest) {
 
     // Allow the same person to rejoin (e.g. after an app reload) — only
     // reject when a *different* name already holds the seat.
-    if (current[field] && current[field] !== trimmedName) {
+    if (current[field] && !seatNamesMatch(current[field], trimmedName)) {
       return NextResponse.json(
         { error: `${role} seat is already taken`, session: current },
         { status: 409 }

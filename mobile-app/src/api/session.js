@@ -31,7 +31,11 @@ export async function claimSeat(role, name) {
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    return { ok: false, error: body.error ?? `HTTP ${res.status}` };
+    return {
+      ok: false,
+      error: body.error ?? `HTTP ${res.status}`,
+      session: body.session,
+    };
   }
   return { ok: true, session: body };
 }
