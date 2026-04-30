@@ -10,6 +10,7 @@ import {
   Image,
   Pressable,
   Keyboard,
+  Dimensions,
 } from "react-native";
 import {
   MANIFESTO_THEMES,
@@ -260,6 +261,10 @@ function PassengerSettings({
   const removeContact = (name) =>
     onUpdateContacts?.(contacts.filter((c) => c !== name));
 
+  const windowH = Dimensions.get("window").height;
+  const sheetMaxH = Math.round(windowH * 0.85);
+  const scrollViewportH = Math.max(260, sheetMaxH - 100);
+
   return (
     <Modal
       visible={visible}
@@ -267,11 +272,16 @@ function PassengerSettings({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable onPress={onClose} className="flex-1 bg-black/40 justify-end">
+      <View className="flex-1 justify-end">
         <Pressable
-          onPress={() => {}}
-          className="p-6 bg-white rounded-t-3xl border-t border-slate-200"
-          style={{ maxHeight: "85%" }}
+          onPress={onClose}
+          className="absolute inset-0 bg-black/40"
+          accessibilityRole="button"
+          accessibilityLabel="Close trip settings"
+        />
+        <View
+          className="w-full bg-white rounded-t-3xl border-t border-slate-200 px-6 pt-6"
+          style={{ maxHeight: sheetMaxH }}
         >
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-slate-900 text-xl font-bold">
@@ -286,7 +296,11 @@ function PassengerSettings({
           </View>
 
           <ScrollView
-            showsVerticalScrollIndicator={false}
+            style={{ maxHeight: scrollViewportH }}
+            contentContainerStyle={{ paddingBottom: 36 }}
+            showsVerticalScrollIndicator
+            bounces
+            nestedScrollEnabled
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
           >
@@ -445,8 +459,8 @@ function PassengerSettings({
             </View>
           )}
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }

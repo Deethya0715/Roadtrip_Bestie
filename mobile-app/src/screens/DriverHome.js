@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,9 @@ import {
   Image,
   Modal,
   Pressable,
+  Dimensions,
+  AppState,
+  Alert,
 } from "react-native";
 import {
   getThemeSurfaces,
@@ -17,15 +20,19 @@ import { useSafeCheckIn } from "../features/safeCheckIn/useSafeCheckIn";
 import SafeCheckInPanel from "../features/safeCheckIn/SafeCheckInPanel";
 import LeavingCheckInModal from "../features/safeCheckIn/LeavingCheckInModal";
 import RelocationInventorySection from "../features/safeCheckIn/RelocationInventorySection";
+import NextStopProgressCard from "../components/NextStopProgressCard";
+import { getNextStopLabel, loadTripPlan } from "../storage/tripPlan";
 
 export default function DriverHome({
   name,
   session,
   onLeave,
+  onResetTripForEveryone,
   vibeMode = "standard",
   activeTheme,
 }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tripPlan, setTripPlan] = useState(null);
   const safe = useSafeCheckIn({ role: "driver", name, session });
   const isManifesto = vibeMode === "manifesto";
 
@@ -44,6 +51,28 @@ export default function DriverHome({
     isManifesto && appearance?.accent ? appearance.accent : "#3b82f6";
   const posterColor = isManifesto ? appearance?.posterColor : null;
 
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = () => {
+      loadTripPlan().then((p) => {
+        if (!cancelled) setTripPlan(p);
+      });
+    };
+    refresh();
+    const sub = AppState.addEventListener("change", (s) => {
+      if (s === "active") refresh();
+    });
+    const poll = setInterval(refresh, 5000);
+    return () => {
+      cancelled = true;
+      sub.remove();
+      clearInterval(poll);
+    };
+  }, []);
+
+  const nextStopLabel = getNextStopLabel(tripPlan);
+  const hasRoute = !!nextStopLabel;
+
   const baseBg = isDarkBase ? "bg-black" : "bg-white";
   const titleColor = isDarkBase ? "text-white" : "text-slate-900";
   const mutedColor = isDarkBase ? "text-slate-300" : "text-slate-500";
@@ -52,6 +81,11 @@ export default function DriverHome({
     : "bg-slate-50 border border-slate-200";
   const cardLabel = isDarkBase ? "text-slate-300" : "text-slate-500";
   const cardValue = isDarkBase ? "text-white" : "text-slate-900";
+
+  const windowH = Dimensions.get("window").height;
+  const tripSettingsSheetMaxH = Math.round(windowH * 0.85);
+  const tripSettingsScrollH = Math.max(260, tripSettingsSheetMaxH - 100);
+
   return (
     <View className={`flex-1 ${baseBg}`}>
       {isManifesto && activeTheme?.poster && (
@@ -114,6 +148,18 @@ export default function DriverHome({
         </View>
 
         <View className="px-6">
+          <NextStopProgressCard
+            progress={hasRoute ? 70 : 0}
+            milesRemaining={hasRoute ? 45 : null}
+            detailLine={
+              hasRoute ? undefined : "Add your route in Roadtrip Planner"
+            }
+            nextStopLabel={nextStopLabel ?? "Open Roadtrip Planner"}
+            accent={accent}
+            posterColor={posterColor}
+            isDark={isDarkBase}
+          />
+
           <View className={`${cardBg} rounded-2xl p-5 mb-4`}>
             <Text
               className={`${cardLabel} text-xs uppercase tracking-wider mb-1`}
@@ -171,11 +217,37 @@ export default function DriverHome({
           />
 
           <TouchableOpacity
-            onPress={onLeave}
-            className="border border-red-500 rounded-2xl p-4 mt-6 mb-12"
+            onPress={() =>
+              Alert.alert(
+                "Reset trip for everyone?",
+                "This clears both seats, safe check-ins on the server, and the trip theme. All phones will return to the join screen.",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Reset everyone",
+                    style: "destructive",
+                    onPress: () => onResetTripForEveryone?.(),
+                  },
+                ]
+              )
+            }
+            className="border border-red-600 bg-red-50 rounded-2xl p-4 mt-6"
           >
-            <Text className="text-red-500 text-center font-semibold">
-              End Trip
+            <Text className="text-red-600 text-center font-semibold">
+              Reset trip & kick everyone
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onLeave}
+            className="border border-slate-300 rounded-2xl p-4 mt-3 mb-12"
+          >
+            <Text
+              className={`${
+                isDarkBase ? "text-slate-200" : "text-slate-700"
+              } text-center font-semibold`}
+            >
+              Leave trip (ends for everyone)
             </Text>
           </TouchableOpacity>
         </View>
@@ -196,14 +268,16 @@ export default function DriverHome({
         animationType="slide"
         onRequestClose={() => setSettingsOpen(false)}
       >
-        <Pressable
-          onPress={() => setSettingsOpen(false)}
-          className="flex-1 bg-black/40 justify-end"
-        >
+        <View className="flex-1 justify-end">
           <Pressable
-            onPress={() => {}}
-            className="p-6 bg-white rounded-t-3xl border-t border-slate-200"
-            style={{ maxHeight: "85%" }}
+            onPress={() => setSettingsOpen(false)}
+            className="absolute inset-0 bg-black/40"
+            accessibilityRole="button"
+            accessibilityLabel="Close trip settings"
+          />
+          <View
+            className="w-full bg-white rounded-t-3xl border-t border-slate-200 px-6 pt-6"
+            style={{ maxHeight: tripSettingsSheetMaxH }}
           >
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-slate-900 text-xl font-bold">
@@ -216,7 +290,15 @@ export default function DriverHome({
                 <Text className="text-slate-600">Done</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={{ maxHeight: tripSettingsScrollH }}
+              contentContainerStyle={{ paddingBottom: 36 }}
+              showsVerticalScrollIndicator
+              bounces
+              nestedScrollEnabled
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+            >
               <RelocationInventorySection
                 items={safe.settings?.relocationInventory ?? []}
                 onChange={(next) =>
@@ -224,8 +306,8 @@ export default function DriverHome({
                 }
               />
             </ScrollView>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </View>
   );

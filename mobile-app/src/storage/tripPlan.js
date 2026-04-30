@@ -11,6 +11,16 @@ const KEY = "roadtrip_bestie.tripPlan.v1";
  * }
  */
 
+/** Next waypoint: first planned stop, else final destination. */
+export function getNextStopLabel(plan) {
+  if (!plan) return null;
+  const stop = plan.stops?.[0]?.label?.trim();
+  if (stop) return stop;
+  const dest = plan.destination?.trim();
+  if (dest) return dest;
+  return null;
+}
+
 export async function loadTripPlan() {
   try {
     const raw = await AsyncStorage.getItem(KEY);

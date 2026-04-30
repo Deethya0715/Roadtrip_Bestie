@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,12 +9,18 @@ import {
   Keyboard,
 } from "react-native";
 import "./global.css";
-import { getSession, claimSeat, leaveSeat } from "./src/api/session";
+import {
+  getSession,
+  claimSeat,
+  leaveSeat,
+  resetEntireSession,
+} from "./src/api/session";
 import {
   saveLocalSession,
   loadLocalSession,
   clearLocalSession,
 } from "./src/storage/localSession";
+import { clearTripPlan } from "./src/storage/tripPlan";
 import DriverHome from "./src/screens/DriverHome";
 import PassengerHome from "./src/screens/PassengerHome";
 
@@ -30,6 +36,7 @@ export default function App() {
   });
   const [isJoining, setIsJoining] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
+  const selfResetInProgress = useRef(false);
 
   // Global vibe state. Default is the clean white base; the passenger can
   // flip into "manifesto" mode from their settings sheet to get the
@@ -101,6 +108,43 @@ export default function App() {
     };
   }, []);
 
+  // If the server clears our seat (e.g. driver reset trip for everyone), drop
+  // local session so we return to the command center.
+  useEffect(() => {
+    if (!isConfirmed || !role || !name) return;
+    if (selfResetInProgress.current) return;
+    const stillInSeat =
+      role === "driver"
+        ? session.driverName === name
+        : session.passengerName === name;
+    if (stillInSeat) return;
+
+    let cancelled = false;
+    (async () => {
+      await clearLocalSession();
+      await clearTripPlan();
+      if (cancelled) return;
+      setIsConfirmed(false);
+      setRole(null);
+      setName("");
+      setVibeMode("standard");
+      setActiveTheme(null);
+      Alert.alert(
+        "Trip ended",
+        "This trip ended for everyone (someone left or reset the trip). You can join again when ready."
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isConfirmed,
+    role,
+    name,
+    session.driverName,
+    session.passengerName,
+  ]);
+
   const handleRoleSelection = (selectedRole) => {
     // Don't block taken seats — the user might be rejoining after an app
     // reload. The backend allows a rejoin if the name matches the seat.
@@ -129,15 +173,55 @@ export default function App() {
   };
 
   const handleLeave = async () => {
+    selfResetInProgress.current = true;
     try {
-      await leaveSeat(role);
-    } catch (err) {
-      console.warn("leaveSeat failed:", err.message);
+      try {
+        await leaveSeat(role);
+      } catch (err) {
+        console.warn("leaveSeat failed:", err.message);
+      }
+      await clearLocalSession();
+      await clearTripPlan();
+      setSession({
+        driverName: null,
+        passengerName: null,
+        activeTheme: "Phineas",
+      });
+      setIsConfirmed(false);
+      setRole(null);
+      setName("");
+      setVibeMode("standard");
+      setActiveTheme(null);
+    } finally {
+      selfResetInProgress.current = false;
     }
-    await clearLocalSession();
-    setIsConfirmed(false);
-    setRole(null);
-    setName("");
+  };
+
+  const handleResetTripForEveryone = async () => {
+    selfResetInProgress.current = true;
+    try {
+      try {
+        await resetEntireSession();
+      } catch (err) {
+        console.warn("resetEntireSession failed:", err.message);
+        Alert.alert("Error", "Could not reset the trip. Check your connection.");
+        return;
+      }
+      await clearLocalSession();
+      await clearTripPlan();
+      setSession({
+        driverName: null,
+        passengerName: null,
+        activeTheme: "Phineas",
+      });
+      setIsConfirmed(false);
+      setRole(null);
+      setName("");
+      setVibeMode("standard");
+      setActiveTheme(null);
+    } finally {
+      selfResetInProgress.current = false;
+    }
   };
 
   if (isRestoring) {
@@ -260,6 +344,7 @@ export default function App() {
         name={name}
         session={session}
         onLeave={handleLeave}
+        onResetTripForEveryone={handleResetTripForEveryone}
         vibeMode={vibeMode}
         activeTheme={activeTheme}
       />

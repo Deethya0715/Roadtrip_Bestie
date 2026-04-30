@@ -108,27 +108,28 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/** Full wipe of the singleton trip so every device returns to the join screen. */
+const SESSION_FULL_RESET = {
+  driverName: null as string | null,
+  passengerName: null as string | null,
+  checkInLogJson: "[]",
+  activeTheme: "Phineas",
+};
+
 /**
- * DELETE /api/session  { role: "driver" | "passenger" }
- *   -> give up a seat when the app closes / user taps "leave".
- *
- * With no body, resets the whole session (useful for dev).
+ * DELETE /api/session  optional { role: "driver" | "passenger" }
+ *   -> end the trip for everyone (both seats, check-ins, theme). The role is
+ *   only used by clients when closing the app / leaving; the server always
+ *   clears the whole session so the other phone drops out on the next poll.
  */
 export async function DELETE(req: NextRequest) {
-  let role: string | undefined;
   try {
-    const body = (await req.json()) as { role?: string };
-    role = body.role;
+    await req.json();
   } catch {
-    // empty body is fine -> reset everything
+    // empty body is fine
   }
 
-  const data =
-    role === "driver"
-      ? { driverName: null }
-      : role === "passenger"
-      ? { passengerName: null }
-      : { driverName: null, passengerName: null };
+  const data = SESSION_FULL_RESET;
 
   const updated = await prisma.tripSession.upsert({
     where: { id: SESSION_ID },

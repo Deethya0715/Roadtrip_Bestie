@@ -55,3 +55,10 @@ export async function leaveSeat(role) {
   if (!res.ok) throw new Error(`leaveSeat failed: ${res.status}`);
   return res.json();
 }
+
+/** Clears both seats, check-in log, and theme on the server (driver-only UX). */
+export async function resetEntireSession() {
+  const res = await fetch(`${BASE_URL}/api/session`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`resetEntireSession failed: ${res.status}`);
+  return res.json();
+}
