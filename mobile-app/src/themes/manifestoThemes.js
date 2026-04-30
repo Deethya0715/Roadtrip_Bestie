@@ -19,19 +19,23 @@ export const MANIFESTO_THEMES = [
     id: "phineas-ferb",
     name: "Phineas and Ferb",
     category: "light",
-    posterColor: "#06b6d4", // Aqua / Teal
+    posterColor: "#06b6d4", // Aqua wash over the backyard tree still
     accent: "#facc15", // Jake Yellow
     tagline: "Hey Ferb, I know what we're gonna do today.",
-    poster: null,
+    poster: require("../../assets/manifesto-phineas-ferb.png"),
+    posterImageOpacity: 0.5,
+    posterWashOpacity: 0.42,
   },
   {
     id: "legally-blonde",
     name: "Legally Blonde",
     category: "light",
-    posterColor: "#f9a8d4", // Pastel Pink
+    posterColor: "#f472b6", // Elle pink wash over the courtroom still
     accent: "#db2777", // Elle's Hot Pink (legible, unmistakably her)
     tagline: "What, like it's hard?",
-    poster: null,
+    poster: require("../../assets/manifesto-legally-blonde.png"),
+    posterImageOpacity: 0.5,
+    posterWashOpacity: 0.42,
   },
   {
     id: "clueless",
@@ -58,10 +62,12 @@ export const MANIFESTO_THEMES = [
     id: "la-la-land-sunset",
     name: "La La Land · Sunset",
     category: "light",
-    posterColor: "#fecaca", // Pastel Peach
+    posterColor: "#818cf8", // Magic-hour indigo wash over the Griffith Park still
     accent: "#c4b5fd", // Pastel Lavender
     tagline: "Here's to the ones who dream.",
-    poster: null,
+    poster: require("../../assets/manifesto-la-la-land.png"),
+    posterImageOpacity: 0.5,
+    posterWashOpacity: 0.42,
   },
 
   // ─── Dark Mode Themes (Overnight Driving) ───────────────────────────────
