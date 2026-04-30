@@ -9,9 +9,9 @@
 //                                  based on the local hour
 //   posterColorDark – only on adaptive themes; used when it's after dark
 //
-// If you later drop real poster images into mobile-app/assets, add a
-// `poster: require('../../assets/xyz.png')` field and the Image layer in the
-// screens will pick it up automatically.
+// Optional per-theme backdrop tuning (when `poster` is set):
+//   posterImageOpacity – photo visibility before the wash (0–1)
+//   posterWashOpacity  – color overlay strength on top of the photo (0–1)
 
 export const MANIFESTO_THEMES = [
   // ─── Light Mode Themes (Daytime Driving) ────────────────────────────────
@@ -37,10 +37,13 @@ export const MANIFESTO_THEMES = [
     id: "clueless",
     name: "Clueless",
     category: "light",
-    posterColor: "#fde047", // Yellow Plaid
+    // Lilac–sky wash over the still (binder purple + Cher’s shirt blue)
+    posterColor: "#a5b4fc",
     accent: "#fbcfe8", // Feather Pink
     tagline: "As if!",
-    poster: null,
+    poster: require("../../assets/manifesto-clueless.png"),
+    posterImageOpacity: 0.5,
+    posterWashOpacity: 0.42,
   },
   {
     id: "princess-diaries",
@@ -214,6 +217,12 @@ export const getThemeSurfaces = (theme) => {
   const accent = appearance?.accent ?? "#0f172a";
   const posterColor = appearance?.posterColor ?? null;
   const posterImage = theme?.poster ?? null;
+  const hasPosterImage = !!posterImage;
+  const posterOpacity =
+    theme?.posterWashOpacity ?? (isDark ? 0.28 : hasPosterImage ? 0.32 : 0.22);
+  const posterImageOpacity = hasPosterImage
+    ? theme?.posterImageOpacity ?? 0.5
+    : 0;
 
   if (!theme) {
     return {
@@ -224,6 +233,7 @@ export const getThemeSurfaces = (theme) => {
       posterColor: null,
       posterImage: null,
       posterOpacity: 0,
+      posterImageOpacity: 0,
       rootBg: "bg-white",
       headerBorder: "border-b border-slate-100",
       titleText: "text-slate-900",
@@ -248,7 +258,8 @@ export const getThemeSurfaces = (theme) => {
     accent,
     posterColor,
     posterImage,
-    posterOpacity: isDark ? 0.28 : 0.22,
+    posterOpacity,
+    posterImageOpacity,
     rootBg: isDark ? "bg-black" : "bg-white",
     headerBorder: isDark
       ? "border-b border-white/10"

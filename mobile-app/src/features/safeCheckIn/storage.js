@@ -37,16 +37,48 @@ const DEFAULT_SETTINGS = {
   // Whether the client should actually watch GPS. Off by default so the
   // app doesn't prompt for permission until the user opts in.
   locationEnabled: false,
+  // Pit-stop checklist before Leaving check-in (editable in Trip Settings).
+  relocationInventory: [
+    { id: "laptop", label: "Laptop" },
+    { id: "suitcase", label: "Suitcase" },
+    { id: "crochet", label: "Crochet kit" },
+    { id: "friend", label: "Friend" },
+  ],
 };
+
+function normalizeRelocationInventory(raw) {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return DEFAULT_SETTINGS.relocationInventory.map((x) => ({ ...x }));
+  }
+  return raw
+    .filter((x) => x && String(x.label ?? "").trim())
+    .map((x, i) => ({
+      id: String(x.id || `item-${i}`),
+      label: String(x.label).trim(),
+    }))
+    .slice(0, 24);
+}
 
 export async function loadSettings() {
   try {
     const raw = await AsyncStorage.getItem(SETTINGS_KEY);
-    if (!raw) return { ...DEFAULT_SETTINGS };
+    if (!raw) {
+      return {
+        ...DEFAULT_SETTINGS,
+        relocationInventory: normalizeRelocationInventory(null),
+      };
+    }
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    const merged = { ...DEFAULT_SETTINGS, ...parsed };
+    merged.relocationInventory = normalizeRelocationInventory(
+      merged.relocationInventory
+    );
+    return merged;
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return {
+      ...DEFAULT_SETTINGS,
+      relocationInventory: normalizeRelocationInventory(null),
+    };
   }
 }
 

@@ -12,14 +12,22 @@ import {
 /**
  * Mandatory handoff checklist shown to the driver the moment we detect
  * the car leaving the charger. All boxes must be ticked before the
- * "Confirm & Share" button unlocks — this is the whole point of the
- * check-in, the driver can't skip past a forgotten charging cable.
+ * "Confirm & Share" button unlocks — EV handoff items plus the persisted
+ * relocation inventory from Trip Settings.
  */
-const CHECKLIST_ITEMS = [
+const EV_CHECKLIST_ITEMS = [
   { id: "unplugged", label: "Charging cable unplugged & returned" },
   { id: "newDriver", label: "New driver ready & buckled" },
   { id: "doors", label: "Doors closed, trash out, nothing forgotten" },
 ];
+
+function buildRelocationRows(relocationItems) {
+  const list = Array.isArray(relocationItems) ? relocationItems : [];
+  return list.map((r) => ({
+    id: `reloc:${r.id}`,
+    label: `Do you have your ${r.label}?`,
+  }));
+}
 
 export default function LeavingCheckInModal({
   visible,
@@ -27,11 +35,15 @@ export default function LeavingCheckInModal({
   onSubmit,
   defaultDriver,
   chargerName,
+  relocationItems = [],
 }) {
   const [checked, setChecked] = useState({});
   const [newDriver, setNewDriver] = useState(defaultDriver ?? "");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const relocationRows = buildRelocationRows(relocationItems);
+  const allChecklistItems = [...EV_CHECKLIST_ITEMS, ...relocationRows];
 
   useEffect(() => {
     if (visible) {
@@ -42,7 +54,7 @@ export default function LeavingCheckInModal({
     }
   }, [visible, defaultDriver]);
 
-  const allChecked = CHECKLIST_ITEMS.every((i) => checked[i.id]);
+  const allChecked = allChecklistItems.every((i) => checked[i.id]);
   const canSubmit =
     !submitting && allChecked && newDriver.trim().length >= 2;
 
@@ -55,7 +67,7 @@ export default function LeavingCheckInModal({
     await onSubmit({
       newDriver: newDriver.trim(),
       notes: notes.trim() || null,
-      checklist: CHECKLIST_ITEMS.map((i) => ({
+      checklist: allChecklistItems.map((i) => ({
         id: i.id,
         label: i.label,
         done: !!checked[i.id],
@@ -88,7 +100,7 @@ export default function LeavingCheckInModal({
           </Text>
 
           <View className="mb-4">
-            {CHECKLIST_ITEMS.map((item) => {
+            {EV_CHECKLIST_ITEMS.map((item) => {
               const done = !!checked[item.id];
               return (
                 <TouchableOpacity
@@ -121,6 +133,54 @@ export default function LeavingCheckInModal({
                 </TouchableOpacity>
               );
             })}
+
+            {relocationRows.length > 0 && (
+              <>
+                <Text className="text-violet-700 text-xs font-bold uppercase tracking-wider mt-4 mb-2">
+                  Pit stop — relocation
+                </Text>
+                <Text className="text-slate-500 text-sm mb-3">
+                  Quick-fire list so nothing important stays in the lot.
+                </Text>
+                {relocationRows.map((item) => {
+                  const done = !!checked[item.id];
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      onPress={() => toggle(item.id)}
+                      className={`flex-row items-center p-4 rounded-2xl mb-2 border ${
+                        done
+                          ? "bg-violet-50 border-violet-200"
+                          : "bg-slate-50 border-slate-200"
+                      }`}
+                    >
+                      <View
+                        className={`w-6 h-6 rounded-md mr-3 items-center justify-center border ${
+                          done
+                            ? "bg-violet-600 border-violet-600"
+                            : "bg-white border-slate-300"
+                        }`}
+                      >
+                        {done && (
+                          <Text className="text-white font-black text-xs">
+                            ✓
+                          </Text>
+                        )}
+                      </View>
+                      <Text
+                        className={`flex-1 ${
+                          done
+                            ? "text-violet-900 font-semibold"
+                            : "text-slate-800"
+                        }`}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </>
+            )}
           </View>
 
           <Text className="text-slate-500 text-xs uppercase tracking-wider mb-1">

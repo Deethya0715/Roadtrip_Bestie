@@ -15,6 +15,7 @@ import {
   MANIFESTO_THEMES,
   THEME_GROUPS,
   getNextTheme,
+  getThemeSurfaces,
   resolveThemeAppearance,
   textOnColor,
 } from "../themes/manifestoThemes";
@@ -23,6 +24,7 @@ import { useSafeCheckIn } from "../features/safeCheckIn/useSafeCheckIn";
 import SafeCheckInPanel from "../features/safeCheckIn/SafeCheckInPanel";
 import VibeCheckModal from "../features/safeCheckIn/VibeCheckModal";
 import BlackoutMode from "../features/safeCheckIn/BlackoutMode";
+import RelocationInventorySection from "../features/safeCheckIn/RelocationInventorySection";
 
 export default function PassengerHome({
   name,
@@ -41,6 +43,11 @@ export default function PassengerHome({
   // themes depend on the local hour). Recomputed whenever the theme changes.
   const appearance = useMemo(
     () => (isManifesto ? resolveThemeAppearance(activeTheme) : null),
+    [isManifesto, activeTheme]
+  );
+
+  const surfaces = useMemo(
+    () => (isManifesto && activeTheme ? getThemeSurfaces(activeTheme) : null),
     [isManifesto, activeTheme]
   );
 
@@ -67,22 +74,23 @@ export default function PassengerHome({
     : "bg-slate-50 border border-slate-200";
   const cardLabel = isDarkBase ? "text-slate-300" : "text-slate-500";
   const cardValue = isDarkBase ? "text-white" : "text-slate-900";
-  const posterOpacity = isDarkBase ? 0.28 : 0.2;
-
   return (
     <View className={`flex-1 ${baseBg}`}>
-      {isManifesto && posterColor && (
-        <View
-          className="absolute inset-0"
-          style={{ backgroundColor: posterColor, opacity: posterOpacity }}
-        />
-      )}
       {isManifesto && activeTheme?.poster && (
         <Image
           source={activeTheme.poster}
-          className="absolute inset-0 w-full h-full opacity-20"
-          style={{ tintColor: "gray" }}
+          className="absolute inset-0 w-full h-full"
+          style={{ opacity: surfaces?.posterImageOpacity ?? 0.5 }}
           resizeMode="cover"
+        />
+      )}
+      {isManifesto && posterColor && (
+        <View
+          className="absolute inset-0"
+          style={{
+            backgroundColor: posterColor,
+            opacity: surfaces?.posterOpacity ?? 0.22,
+          }}
         />
       )}
 
@@ -288,6 +296,13 @@ function PassengerSettings({
           <SafeSettingsBlock
             settings={safeSettings}
             onUpdate={onUpdateSafeSettings}
+          />
+
+          <RelocationInventorySection
+            items={safeSettings?.relocationInventory ?? []}
+            onChange={(next) =>
+              onUpdateSafeSettings?.({ relocationInventory: next })
+            }
           />
 
           <Text className="text-slate-500 text-xs uppercase tracking-wider mb-2 mt-4">
