@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,10 @@ import {
   Alert,
   ActivityIndicator,
   Keyboard,
+  Animated,
+  Platform,
 } from "react-native";
+import * as Notifications from "expo-notifications";
 import "./global.css";
 import {
   getSession,
@@ -23,6 +26,19 @@ import {
 import { clearTripPlan } from "./src/storage/tripPlan";
 import DriverHome from "./src/screens/DriverHome";
 import PassengerHome from "./src/screens/PassengerHome";
+import { useGoldenHourTracker } from "./src/features/goldenHour/useGoldenHourTracker";
+import { LA_LA_LAND_SUNSET_THEME } from "./src/themes/manifestoThemes";
+
+if (Platform.OS !== "web") {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 const POLL_INTERVAL_MS = 3000;
 /** Require this long with a sustained seat mismatch before kicking (avoids flaky polls). */
@@ -61,6 +77,31 @@ export default function App() {
   // monochrome movie-poster backdrop and theme colors.
   const [vibeMode, setVibeMode] = useState("standard"); // 'standard' | 'manifesto'
   const [activeTheme, setActiveTheme] = useState(null);
+  const themeFade = useRef(new Animated.Value(1)).current;
+
+  const switchToMagicHourTheme = useCallback(() => {
+    if (!LA_LA_LAND_SUNSET_THEME) return;
+    Animated.timing(themeFade, {
+      toValue: 0,
+      duration: 320,
+      useNativeDriver: true,
+    }).start(() => {
+      setVibeMode("manifesto");
+      setActiveTheme(LA_LA_LAND_SUNSET_THEME);
+      Animated.timing(themeFade, {
+        toValue: 1,
+        duration: 480,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [themeFade]);
+
+  useGoldenHourTracker({
+    isConfirmed,
+    vibeMode,
+    activeTheme,
+    switchToMagicHourTheme,
+  });
 
   // On launch: if we have a local session, skip the role picker and go
   // straight to the homepage. Re-assert the seat on the backend so the
@@ -386,26 +427,30 @@ export default function App() {
 
   if (role === "driver") {
     return (
-      <DriverHome
-        name={name}
-        session={session}
-        onLeave={handleLeave}
-        onResetTripForEveryone={handleResetTripForEveryone}
-        vibeMode={vibeMode}
-        activeTheme={activeTheme}
-      />
+      <Animated.View style={{ flex: 1, opacity: themeFade }}>
+        <DriverHome
+          name={name}
+          session={session}
+          onLeave={handleLeave}
+          onResetTripForEveryone={handleResetTripForEveryone}
+          vibeMode={vibeMode}
+          activeTheme={activeTheme}
+        />
+      </Animated.View>
     );
   }
 
   return (
-    <PassengerHome
-      name={name}
-      session={session}
-      onLeave={handleLeave}
-      vibeMode={vibeMode}
-      setVibeMode={setVibeMode}
-      activeTheme={activeTheme}
-      setActiveTheme={setActiveTheme}
-    />
+    <Animated.View style={{ flex: 1, opacity: themeFade }}>
+      <PassengerHome
+        name={name}
+        session={session}
+        onLeave={handleLeave}
+        vibeMode={vibeMode}
+        setVibeMode={setVibeMode}
+        activeTheme={activeTheme}
+        setActiveTheme={setActiveTheme}
+      />
+    </Animated.View>
   );
 }

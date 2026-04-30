@@ -12,11 +12,14 @@ datasource db {
 
 /// Stores the Smartcar OAuth tokens for the Mach-E so we don't have to
 /// send the user through the Ford login every time the app opens.
+/// Singleton row for the linked EV (Smartcar). `id` is always `default`.
 model VehicleToken {
-  id           String   @id @default(cuid())
-  accessToken  String
-  refreshToken String
-  updatedAt    DateTime @updatedAt
+  id              String    @id @default("default")
+  vehicleId       String?
+  accessToken     String
+  refreshToken    String
+  accessExpiresAt DateTime?
+  updatedAt       DateTime  @updatedAt
 }
 
 /// Singleton row describing the currently active road trip. The fixed
@@ -31,6 +34,8 @@ model TripSession {
   // blackout). Stored as a plain string so we don't need a Postgres-only
   // Json column. See /api/check-in for the schema of each entry.
   checkInLogJson String @default("[]")
+  // Shared trip expense ledger (food, coffee, charging). See /api/expenses.
+  expenseLedgerJson String @default("[]")
   updatedAt     DateTime @updatedAt
 }
 

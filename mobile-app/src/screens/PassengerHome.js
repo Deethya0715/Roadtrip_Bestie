@@ -421,7 +421,7 @@ function PassengerSettings({
             </TouchableOpacity>
           </View>
 
-          {isManifesto && (
+          {isManifesto ? (
             <View className="mt-4">
               <View className="flex-row justify-between items-center p-4 bg-slate-50 rounded-2xl mb-4">
                 <View className="flex-1 pr-3">
@@ -484,10 +484,10 @@ function PassengerSettings({
               ))}
 
               <Text className="text-center text-xs text-slate-400 mt-2 mb-2 italic">
-                "Shake the phone to cycle through themes"
+                &quot;Shake the phone to cycle through themes&quot;
               </Text>
             </View>
-          )}
+          ) : null}
           </ScrollView>
           </View>
         </View>

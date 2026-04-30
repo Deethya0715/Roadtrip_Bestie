@@ -160,6 +160,10 @@ export const MANIFESTO_THEMES = [
   },
 ];
 
+/** Golden Hour / Director's Lens — twilight purple & peach wash over LA still. */
+export const LA_LA_LAND_SUNSET_THEME =
+  MANIFESTO_THEMES.find((t) => t.id === "la-la-land-sunset") ?? null;
+
 // Quick perceived-luminance check: returns '#0f172a' (slate-900) for light
 // colors and '#ffffff' for dark ones. Use for any text painted on top of a
 // theme-supplied color (CTA tiles, selected pills, etc.) so we don't end up

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { smartcarClient } from "@/app/lib/smartcar";
+import { smartcarClient, smartcar } from "@/app/lib/smartcar";
+import { persistSmartcarLink } from "@/app/lib/vehicleSmartcar";
 
 /**
  * Step 2 of the handshake.
@@ -28,6 +29,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const access = await smartcarClient.exchangeCode(code);
+
+    try {
+      const { vehicles } = await smartcar.getVehicles(access.accessToken);
+      const vehicleId = vehicles[0];
+      if (vehicleId) {
+        await persistSmartcarLink(access, vehicleId);
+      }
+    } catch (linkErr) {
+      console.error("Smartcar persist link failed (tokens still returned)", linkErr);
+    }
 
     return NextResponse.json({
       accessToken: access.accessToken,

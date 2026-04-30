@@ -119,6 +119,7 @@ const SESSION_FULL_RESET = {
   driverName: null as string | null,
   passengerName: null as string | null,
   checkInLogJson: "[]",
+  expenseLedgerJson: "[]",
   activeTheme: "Phineas",
 };
 

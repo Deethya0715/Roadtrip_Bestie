@@ -24,6 +24,20 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Roadtrip Bestie uses your location for Golden Hour sunset times along your route and for safe check-ins."
+        }
+      ]
+    ]
   }
 }
