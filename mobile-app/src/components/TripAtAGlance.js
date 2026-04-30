@@ -237,7 +237,7 @@ export default function TripAtAGlance({
         </View>
         <View className="flex-row items-baseline mb-1">
           <Text className={`${titleColor} text-4xl font-black`}>
-            {efficiency != null ? String(efficiency) : "—"}
+            {efficiency != null ? efficiency.toFixed(1) : "—"}
           </Text>
           {efficiency != null ? (
             <Text className={`${mutedColor} text-base font-medium ml-2`}>
