@@ -175,6 +175,39 @@ export const textOnColor = (hex) => {
   return lum > 0.6 ? "#0f172a" : "#ffffff";
 };
 
+function parseRgbHex(hex) {
+  if (!hex || typeof hex !== "string") return { r: 255, g: 255, b: 255 };
+  const c = hex.replace("#", "");
+  if (c.length !== 6) return { r: 255, g: 255, b: 255 };
+  return {
+    r: parseInt(c.slice(0, 2), 16),
+    g: parseInt(c.slice(2, 4), 16),
+    b: parseInt(c.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex(r, g, b) {
+  const h = (n) =>
+    Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0");
+  return `#${h(r)}${h(g)}${h(b)}`;
+}
+
+/**
+ * Opaque color matching the manifesto poster *wash* on the home screen
+ * (posterColor at posterOpacity over the same white/black base as rootBg).
+ */
+export function compositePosterWashSolid(isDark, posterColor, posterOpacity) {
+  const baseHex = isDark ? "#000000" : "#ffffff";
+  if (!posterColor) return baseHex;
+  const a = Math.min(1, Math.max(0, posterOpacity ?? 0.22));
+  const bg = parseRgbHex(baseHex);
+  const fg = parseRgbHex(posterColor);
+  const r = Math.round((1 - a) * bg.r + a * fg.r);
+  const g = Math.round((1 - a) * bg.g + a * fg.g);
+  const b = Math.round((1 - a) * bg.b + a * fg.b);
+  return rgbToHex(r, g, b);
+}
+
 // Lookup: how does a theme actually *look* right now?
 // Used by screens to decide whether the base surface should be light or dark,
 // and which poster color to paint behind the UI.
